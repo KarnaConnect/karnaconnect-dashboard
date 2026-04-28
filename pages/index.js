@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 
 export default function Dashboard() {
   const [calls, setCalls] = useState([])
+  const [expanded, setExpanded] = useState(null)
 
   useEffect(() => {
     const supabase = createClient(
@@ -21,29 +22,44 @@ export default function Dashboard() {
   }, [])
 
   return (
-    <div style={{ padding: '40px', fontFamily: 'sans-serif' }}>
-      <h1>KarnaConnect Dashboard</h1>
-      <h2>Recent Calls</h2>
+    <div style={{ padding: '40px', fontFamily: 'sans-serif', maxWidth: '1000px', margin: '0 auto' }}>
+      <h1 style={{ color: '#1a1a1a' }}>KarnaConnect Dashboard</h1>
+      <h2 style={{ color: '#444', fontWeight: 400 }}>Recent Calls</h2>
       {calls.length === 0 ? (
         <p>No calls yet. Once your AI agent handles calls they will appear here.</p>
       ) : (
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ backgroundColor: '#f5f5f5' }}>
-              <th style={{ padding: '10px', textAlign: 'left' }}>Date</th>
-              <th style={{ padding: '10px', textAlign: 'left' }}>Caller</th>
-              <th style={{ padding: '10px', textAlign: 'left' }}>Duration</th>
-              <th style={{ padding: '10px', textAlign: 'left' }}>Outcome</th>
+              <th style={{ padding: '12px 10px', textAlign: 'left', fontSize: '13px', color: '#666' }}>Date</th>
+              <th style={{ padding: '12px 10px', textAlign: 'left', fontSize: '13px', color: '#666' }}>Caller</th>
+              <th style={{ padding: '12px 10px', textAlign: 'left', fontSize: '13px', color: '#666' }}>Duration</th>
+              <th style={{ padding: '12px 10px', textAlign: 'left', fontSize: '13px', color: '#666' }}>Outcome</th>
+              <th style={{ padding: '12px 10px', textAlign: 'left', fontSize: '13px', color: '#666' }}>Summary</th>
             </tr>
           </thead>
           <tbody>
             {calls.map(call => (
-              <tr key={call.id} style={{ borderBottom: '1px solid #eee' }}>
-                <td style={{ padding: '10px' }}>{new Date(call.created_at).toLocaleString()}</td>
-                <td style={{ padding: '10px' }}>{call.caller_number || 'Unknown'}</td>
-                <td style={{ padding: '10px' }}>{call.call_duration ? `${call.call_duration}s` : '-'}</td>
-                <td style={{ padding: '10px' }}>{call.call_outcome || '-'}</td>
-              </tr>
+              <>
+                <tr
+                  key={call.id}
+                  style={{ borderBottom: '1px solid #eee', cursor: call.call_summary ? 'pointer' : 'default' }}
+                  onClick={() => setExpanded(expanded === call.id ? null : call.id)}
+                >
+                  <td style={{ padding: '12px 10px', fontSize: '14px' }}>{new Date(call.created_at).toLocaleString()}</td>
+                  <td style={{ padding: '12px 10px', fontSize: '14px' }}>{call.caller_number || 'Unknown'}</td>
+                  <td style={{ padding: '12px 10px', fontSize: '14px' }}>{call.call_duration ? `${call.call_duration}s` : '-'}</td>
+                  <td style={{ padding: '12px 10px', fontSize: '14px' }}>{call.call_outcome || '-'}</td>
+                  <td style={{ padding: '12px 10px', fontSize: '14px', color: '#0070f3' }}>{call.call_summary ? 'Click to view' : '-'}</td>
+                </tr>
+                {expanded === call.id && call.call_summary && (
+                  <tr key={call.id + '-summary'}>
+                    <td colSpan={5} style={{ padding: '16px', backgroundColor: '#f9f9f9', fontSize: '14px', color: '#444', lineHeight: '1.6' }}>
+                      <strong>Call Summary:</strong><br />{call.call_summary}
+                    </td>
+                  </tr>
+                )}
+              </>
             ))}
           </tbody>
         </table>
