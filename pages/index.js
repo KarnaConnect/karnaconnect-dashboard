@@ -1,3 +1,6 @@
+Here's the full clean code — go to GitHub → `karnaconnect-dashboard` → edit `pages/index.js` → replace everything with this:
+
+```javascript
 import { useEffect, useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
 
@@ -14,6 +17,7 @@ export default function Dashboard() {
   const [mobileNav, setMobileNav] = useState(false)
   const [user, setUser] = useState(null)
   const [authLoading, setAuthLoading] = useState(true)
+  const [clientName, setClientName] = useState('All Clients')
 
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000)
@@ -34,10 +38,25 @@ export default function Dashboard() {
   useEffect(() => {
     if (!user) return
     async function fetchCalls() {
-      const { data } = await supabase
-        .from('calls')
-        .select('*')
-        .order('created_at', { ascending: false })
+      const { data: userClient } = await supabase
+        .from('user_clients')
+        .select('client_id, role')
+        .eq('user_id', user.id)
+        .single()
+
+      let query = supabase.from('calls').select('*').order('created_at', { ascending: false })
+
+      if (userClient && userClient.client_id) {
+        query = query.eq('client_id', userClient.client_id)
+        const { data: clientData } = await supabase
+          .from('clients')
+          .select('business_name')
+          .eq('id', userClient.client_id)
+          .single()
+        if (clientData) setClientName(clientData.business_name)
+      }
+
+      const { data } = await query
       if (data) {
         setCalls(data)
         const today = new Date().toDateString()
@@ -112,7 +131,6 @@ export default function Dashboard() {
           border-right:1px solid rgba(37,99,235,0.12);
           transition:transform 0.3s ease;
         }
-        .sidebar.mobile-hidden { transform:translateX(-100%); }
         .sidebar-top { padding:24px 20px 18px; border-bottom:1px solid rgba(255,255,255,0.05); }
         .logo-row { display:flex; align-items:center; gap:9px; }
         .logo-atom {
@@ -171,6 +189,12 @@ export default function Dashboard() {
         .topbar { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:28px; gap:12px; }
         .page-title { font-size:1.6rem; font-weight:800; color:#08112b; letter-spacing:-0.6px; line-height:1.2; }
         .page-sub { font-size:0.82rem; color:#94a3b8; margin-top:3px; }
+        .client-tag {
+          display:inline-block; background:#eff6ff; color:#2563eb;
+          border:1px solid #bfdbfe; border-radius:6px;
+          font-size:0.72rem; font-weight:700; padding:3px 10px; margin-top:6px;
+          letter-spacing:0.3px;
+        }
         .topbar-right { display:flex; align-items:center; gap:10px; }
         .user-chip {
           font-size:0.75rem; color:#64748b; background:#fff;
@@ -320,6 +344,7 @@ export default function Dashboard() {
               <div className="page-sub">
                 {new Date().toLocaleDateString('en-AU', { weekday:'long', year:'numeric', month:'long', day:'numeric' })}
               </div>
+              <div className="client-tag">📋 {clientName}</div>
             </div>
             <div className="topbar-right">
               {user && <div className="user-chip">👤 {user.email}</div>}
@@ -434,3 +459,6 @@ export default function Dashboard() {
     </>
   )
 }
+```
+
+Commit it, wait for Vercel to redeploy, then test by logging in with Syed's credentials at `https://dashboard.karnaconnect.com.au` and tell me what you see.
