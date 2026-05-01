@@ -390,7 +390,7 @@ export default function Dashboard() {
                     {calls.map(call => (
                       <>
                         <tr key={call.id} className="call-row" onClick={() => setExpanded(expanded === call.id ? null : call.id)}>
-                          <td className="date-col">{new Date(call.created_at).toLocaleString('en-AU')}</td>
+                          <td className="date-col">{new Date(call.created_at).toLocaleString('en-AU', { timeZone: 'Australia/Perth' })}</td>
                           <td className="caller-col"><span className="caller-num">{call.caller_number || 'Unknown'}</span></td>
                           <td className="dur-col"><span className="dur-chip">⏱ {call.call_duration ? `${parseFloat(call.call_duration).toFixed(0)}s` : '—'}</span></td>
                           <td className="outcome-col">
@@ -425,7 +425,7 @@ export default function Dashboard() {
                       <div className="call-card-top">
                         <div>
                           <div className="call-card-num">{call.caller_number || 'Unknown'}</div>
-                          <div className="call-card-date">{new Date(call.created_at).toLocaleString('en-AU')}</div>
+                          <div className="call-card-date">{new Date(call.created_at).toLocaleString('en-AU', { timeZone: 'Australia/Perth' })}</div>
                         </div>
                         <span className="outcome-badge" style={{
                           background: outcomeColor(call.call_outcome) + '15',
