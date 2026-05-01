@@ -456,6 +456,3 @@ export default function Dashboard() {
     </>
   )
 }
-```
-
-Commit it, wait for Vercel to redeploy, then test by logging in with Syed's credentials at `https://dashboard.karnaconnect.com.au` and tell me what you see.
