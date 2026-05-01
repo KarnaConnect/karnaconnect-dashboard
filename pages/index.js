@@ -1,6 +1,3 @@
-Here's the full clean code — go to GitHub → `karnaconnect-dashboard` → edit `pages/index.js` → replace everything with this:
-
-```javascript
 import { useEffect, useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
 
