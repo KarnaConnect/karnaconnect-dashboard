@@ -6,6 +6,20 @@ const supabase = createClient(
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVueGFqcWFoeG5iZ3h3aWd2c2p6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyNTA0OTQsImV4cCI6MjA5MjgyNjQ5NH0.VRzz5We66I620lBKz2WXQgmD02BJbCyqs0eW4YN8IGw'
 )
 
+const PERTH = 'Australia/Perth'
+
+function perthDate(ts) {
+  return new Date(ts).toLocaleString('en-AU', { timeZone: PERTH })
+}
+
+function perthDateShort(ts) {
+  return new Date(ts).toLocaleDateString('en-AU', { timeZone: PERTH })
+}
+
+function isToday(ts) {
+  return perthDateShort(ts) === perthDateShort(new Date())
+}
+
 export default function Dashboard() {
   const [calls, setCalls] = useState([])
   const [expanded, setExpanded] = useState(null)
@@ -56,8 +70,7 @@ export default function Dashboard() {
       const { data } = await query
       if (data) {
         setCalls(data)
-        const today = new Date().toDateString()
-        const todayCalls = data.filter(c => new Date(c.created_at).toDateString() === today)
+        const todayCalls = data.filter(c => isToday(c.created_at))
         const durations = data.filter(c => c.call_duration).map(c => parseFloat(c.call_duration))
         const avg = durations.length ? Math.round(durations.reduce((a, b) => a + b, 0) / durations.length) : 0
         const completed = data.filter(c => c.call_outcome && c.call_outcome.includes('ended')).length
@@ -91,7 +104,7 @@ export default function Dashboard() {
 
   const statCards = [
     { label: 'Total Calls', value: stats.total, unit: '', sub: 'All time', icon: '📞', c: 'c1' },
-    { label: 'Today', value: stats.today, unit: '', sub: new Date().toLocaleDateString('en-AU'), icon: '📅', c: 'c2' },
+    { label: 'Today', value: stats.today, unit: '', sub: perthDateShort(new Date()), icon: '📅', c: 'c2' },
     { label: 'Avg Duration', value: stats.avgDuration, unit: 's', sub: 'Per call', icon: '⏱', c: 'c3' },
     { label: 'Completed', value: stats.completed, unit: '', sub: 'Calls handled', icon: '✅', c: 'c4' },
   ]
@@ -310,7 +323,7 @@ export default function Dashboard() {
             <div className="live-dot" />
             <div className="live-label">Mash is live</div>
             <div className="live-clock">
-              {time.toLocaleTimeString('en-AU', { hour:'2-digit', minute:'2-digit', second:'2-digit' })}
+              {time.toLocaleTimeString('en-AU', { timeZone: PERTH, hour:'2-digit', minute:'2-digit', second:'2-digit' })}
             </div>
           </div>
 
@@ -339,7 +352,7 @@ export default function Dashboard() {
             <div>
               <div className="page-title">Call Dashboard</div>
               <div className="page-sub">
-                {new Date().toLocaleDateString('en-AU', { timeZone: 'Australia/Perth', weekday:'long', year:'numeric', month:'long', day:'numeric' })}
+                {new Date().toLocaleDateString('en-AU', { timeZone: PERTH, weekday:'long', year:'numeric', month:'long', day:'numeric' })}
               </div>
               <div className="client-tag">📋 {clientName}</div>
             </div>
@@ -379,7 +392,7 @@ export default function Dashboard() {
                 <table className="desktop-table">
                   <thead>
                     <tr>
-                      <th>Date & Time</th>
+                      <th>Date & Time (AWST)</th>
                       <th>Caller</th>
                       <th>Duration</th>
                       <th>Outcome</th>
@@ -390,7 +403,7 @@ export default function Dashboard() {
                     {calls.map(call => (
                       <>
                         <tr key={call.id} className="call-row" onClick={() => setExpanded(expanded === call.id ? null : call.id)}>
-                          <td className="date-col">{new Date(call.created_at).toLocaleString('en-AU', { timeZone: 'Australia/Perth' })}</td>
+                          <td className="date-col">{perthDate(call.created_at)}</td>
                           <td className="caller-col"><span className="caller-num">{call.caller_number || 'Unknown'}</span></td>
                           <td className="dur-col"><span className="dur-chip">⏱ {call.call_duration ? `${parseFloat(call.call_duration).toFixed(0)}s` : '—'}</span></td>
                           <td className="outcome-col">
@@ -425,7 +438,7 @@ export default function Dashboard() {
                       <div className="call-card-top">
                         <div>
                           <div className="call-card-num">{call.caller_number || 'Unknown'}</div>
-                          <div className="call-card-date">{new Date(call.created_at).toLocaleString('en-AU', { timeZone: 'Australia/Perth' })}</div>
+                          <div className="call-card-date">{perthDate(call.created_at)}</div>
                         </div>
                         <span className="outcome-badge" style={{
                           background: outcomeColor(call.call_outcome) + '15',
