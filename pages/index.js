@@ -339,7 +339,7 @@ export default function Dashboard() {
             <div>
               <div className="page-title">Call Dashboard</div>
               <div className="page-sub">
-                {new Date().toLocaleDateString('en-AU', { weekday:'long', year:'numeric', month:'long', day:'numeric' })}
+                {new Date().toLocaleDateString('en-AU', { timeZone: 'Australia/Perth', weekday:'long', year:'numeric', month:'long', day:'numeric' })}
               </div>
               <div className="client-tag">📋 {clientName}</div>
             </div>
