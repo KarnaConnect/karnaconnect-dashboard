@@ -49,11 +49,16 @@ export default function Dashboard() {
           .from('clients').select('id, business_name').eq('active', true)
         if (allClients) setClients(allClients)
         await fetchCalls(null)
-      } else if (userClient && userClient.client_id) {
+     } else if (userClient && userClient.client_id) {
         setIsAdmin(false)
-        const { data: cd } = await supabase.from('clients').select('business_name')
+        const { data: cd } = await supabase.from('clients')
+          .select('business_name, brand_name, brand_color, brand_tagline')
           .eq('id', userClient.client_id).single()
-        if (cd) setClientName(cd.business_name)
+        if (cd) {
+          setClientName(cd.brand_name || cd.business_name)
+          if (cd.brand_color) setBrandColor(cd.brand_color)
+          if (cd.brand_tagline) setBrandTagline(cd.brand_tagline)
+        }
         await fetchCalls(userClient.client_id)
       }
     }
@@ -280,14 +285,14 @@ export default function Dashboard() {
         <div className={`sidebar ${mobileNav ? 'mobile-open' : ''}`}>
           <div className="sidebar-top">
             <div className="logo-row">
-              <div className="logo-atom">⚛</div>
-              <div className="logo-text">Karna<span>Connect</span></div>
-            </div>
-            <div className="logo-sub">{isAdmin ? 'Enterprise Admin' : 'AI Command Centre'}</div>
+              <div className="logo-atom" style={{background: `linear-gradient(135deg, ${brandColor}, #06b6d4)`}}>⚛</div>
+  <div className="logo-text" style={{color:'#fff'}}>{isAdmin ? 'KarnaConnect' : clientName}</div>
+</div>
+<div className="logo-sub">{isAdmin ? 'Enterprise Admin' : brandTagline}</div>
           </div>
           <div className="live-pill">
             <div className="live-dot" />
-            <div className="live-label">Mash is live</div>
+            <div className="page-title">{isAdmin ? 'Call Dashboard' : `${clientName} — Calls`}</div>
             <div className="live-clock">
               {time.toLocaleTimeString('en-AU', { timeZone: PERTH, hour:'2-digit', minute:'2-digit', second:'2-digit' })}
             </div>
@@ -314,7 +319,7 @@ export default function Dashboard() {
         <main className="main">
           <div className="topbar">
             <div>
-              <div className="page-title">Call Dashboard</div>
+              <div className="page-title">{isAdmin ? 'Call Dashboard' : `${clientName} — Calls`}</div>
               <div className="page-sub">
                 {new Date().toLocaleDateString('en-AU', { timeZone: PERTH, weekday:'long', year:'numeric', month:'long', day:'numeric' })}
               </div>
