@@ -488,12 +488,34 @@ export default function Dashboard() {
                           <span className="summary-link">{expanded === call.id ? '▲ Hide summary' : '▼ View summary'}</span>
                         )}
                       </div>
-                      {expanded === call.id && call.call_summary && (
-                        <div className="call-card-summary">
-                          <div className="summary-label-sm">⚛ AI Summary — Mash</div>
-                          {call.call_summary}
-                        </div>
-                      )}
+                     {expanded === call.id && (
+  <div className="call-card-summary">
+    {call.call_summary && (
+      <>
+        <div className="summary-label-sm">⚛ AI Summary — Mash</div>
+        <p style={{marginBottom: '12px'}}>{call.call_summary}</p>
+      </>
+    )}
+    {call.full_transcript && (
+      <>
+        <div className="summary-label-sm" style={{marginTop: '8px'}}>📋 Full Transcript</div>
+        <div style={{marginTop: '6px', maxHeight: '200px', overflowY: 'auto'}}>
+          {call.full_transcript.split('\n').map((line, i) => (
+            line.trim() ? (
+              <div key={i} style={{
+                marginBottom: '8px', padding: '6px 10px', borderRadius: '6px',
+                background: line.startsWith('AI:') ? '#eff6ff' : '#f0fdf4',
+                fontSize: '0.8rem', color: '#334155', lineHeight: '1.5'
+              }}>
+                {line}
+              </div>
+            ) : null
+          ))}
+        </div>
+      </>
+    )}
+  </div>
+)}
                     </div>
                   ))}
                 </div>
