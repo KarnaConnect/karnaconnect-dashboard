@@ -279,3 +279,125 @@ export default function Analytics() {
               <div className="insight-sub">All time</div>
             </div>
             <div className="insight-card i2">
+              <div className="insight-label">Today</div>
+              <div className="insight-value">{todayCount}</div>
+              <div className="insight-sub">{new Date().toLocaleDateString('en-AU', { timeZone: PERTH })}</div>
+            </div>
+            <div className="insight-card i3">
+              <div className="insight-label">Avg Duration</div>
+              <div className="insight-value">{avgDuration}<span style={{fontSize:'1rem',fontWeight:500,color:'#94a3b8'}}>s</span></div>
+              <div className="insight-sub">Per call</div>
+            </div>
+            <div className="insight-card i4">
+              <div className="insight-label">Peak Hour</div>
+              <div className="insight-value">{peakHour.label}</div>
+              <div className="insight-sub">{peakHour.count} calls</div>
+            </div>
+          </div>
+
+          {/* CHARTS ROW 1 */}
+          <div className="charts-grid">
+            {/* CALL VOLUME BAR CHART */}
+            <div className="chart-card">
+              <div className="chart-hdr">
+                <div className="chart-title">📈 Call Volume — Last 30 Days</div>
+                <div className="chart-sub">{calls.filter(c => {
+                  const d = new Date(); d.setDate(d.getDate() - 30)
+                  return new Date(c.created_at) > d
+                }).length} calls</div>
+              </div>
+              <div className="chart-body">
+                <div className="bar-chart">
+                  {callsByDay.map((d, i) => (
+                    <div key={i} className="bar-wrap">
+                      <div
+                        className="bar"
+                        style={{ height: `${Math.max((d.count / maxDayCount) * 100, d.count > 0 ? 5 : 0)}%` }}
+                        title={`${d.day}: ${d.count} calls`}
+                      />
+                      {i % 5 === 0 && <div className="bar-label">{d.day}</div>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* OUTCOME DONUT */}
+            <div className="chart-card">
+              <div className="chart-hdr">
+                <div className="chart-title">🎯 Call Outcomes</div>
+                <div className="chart-sub">{totalOutcomes} total</div>
+              </div>
+              <div className="chart-body">
+                <div className="donut-wrap">
+                  <svg width="120" height="120" viewBox="0 0 120 120">
+                    {(() => {
+                      let offset = 0
+                      const r = 45
+                      const circ = 2 * Math.PI * r
+                      return Object.entries(outcomes).map(([label, count]) => {
+                        if (count === 0) return null
+                        const pct = count / Math.max(totalOutcomes, 1)
+                        const dash = pct * circ
+                        const el = (
+                          <circle
+                            key={label}
+                            cx="60" cy="60" r={r}
+                            fill="none"
+                            stroke={outcomeColors[label]}
+                            strokeWidth="18"
+                            strokeDasharray={`${dash} ${circ - dash}`}
+                            strokeDashoffset={-offset * circ}
+                            style={{ transform: 'rotate(-90deg)', transformOrigin: '60px 60px' }}
+                          />
+                        )
+                        offset += pct
+                        return el
+                      })
+                    })()}
+                    <text x="60" y="56" textAnchor="middle" fontSize="14" fontWeight="800" fill="#08112b">{calls.length}</text>
+                    <text x="60" y="70" textAnchor="middle" fontSize="8" fill="#94a3b8">calls</text>
+                  </svg>
+                  <div className="donut-legend">
+                    {Object.entries(outcomes).map(([label, count]) => (
+                      <div key={label} className="legend-item">
+                        <div className="legend-name">
+                          <div className="legend-dot" style={{ background: outcomeColors[label] }} />
+                          {label}
+                        </div>
+                        <div className="legend-val">{count}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* CALLS BY HOUR */}
+          <div className="chart-card">
+            <div className="chart-hdr">
+              <div className="chart-title">🕐 Calls by Hour of Day (AWST)</div>
+              <div className="chart-sub">Peak at {peakHour.label} with {peakHour.count} calls</div>
+            </div>
+            <div className="chart-body">
+              <div className="hour-chart">
+                {hourBuckets.map((h, i) => (
+                  <div key={i} className="hour-bar-wrap">
+                    <div
+                      className={`hour-bar ${h.hour === peakHour.hour ? 'peak' : ''}`}
+                      style={{ height: `${Math.max((h.count / maxHourCount) * 100, h.count > 0 ? 8 : 0)}%` }}
+                      title={`${h.label}: ${h.count} calls`}
+                    />
+                    {i % 3 === 0 && <div className="hour-label">{h.label.replace(':00', '')}</div>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+        </main>
+      </div>
+    </>
+  )
+}
