@@ -1,15 +1,22 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
 
+// --- CONFIG & UTILS ---
 const supabase = createClient(
   'https://enxajqahxnbgxwigvsjz.supabase.co',
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVueGFqcWFoeG5iZ3h3aWd2c2p6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyNTA0OTQsImV4cCI6MjA5MjgyNjQ5NH0.VRzz5We66I620lBKz2WXQgmD02BJbCyqs0eW4YN8IGw'
 )
 
 const PERTH = 'Australia/Perth'
-function perthDate(ts) { return new Date(ts).toLocaleString('en-AU', { timeZone: PERTH }) }
-function perthDateShort(ts) { return new Date(ts).toLocaleDateString('en-AU', { timeZone: PERTH }) }
-function isToday(ts) { return perthDateShort(ts) === perthDateShort(new Date()) }
+const perthDate = (ts) => new Date(ts).toLocaleString('en-AU', { 
+  timeZone: PERTH, 
+  day: '2-digit', 
+  month: 'short', 
+  hour: '2-digit', 
+  minute: '2-digit' 
+})
+const perthDateShort = (ts) => new Date(ts).toLocaleDateString('en-AU', { timeZone: PERTH })
+const isToday = (ts) => perthDateShort(ts) === perthDateShort(new Date())
 
 export default function Dashboard() {
   const [calls, setCalls] = useState([])
@@ -22,7 +29,7 @@ export default function Dashboard() {
   const [isAdmin, setIsAdmin] = useState(false)
   const [clients, setClients] = useState([])
   const [selectedClient, setSelectedClient] = useState('all')
-  const [clientName, setClientName] = useState('All Clients')
+  const [clientName, setClientName] = useState('Global Overview')
 
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000)
@@ -65,6 +72,282 @@ export default function Dashboard() {
     if (clientId) query = query.eq('client_id', clientId)
 
     const { data } = await query
+    if (data) {
+      setCalls(data)
+      const todayCalls = data.filter(c => isToday(c.created_at))
+      const durations = data.filter(c => c.call_duration).map(c => parseFloat(c.call_duration))
+      const avg = durations.length ? Math.round(durations.reduce((a, b) => a + b, 0) / durations.length) : 0
+      const completed = data.filter(c => c.call_outcome && c.call_outcome.includes('ended')).length
+      setStats({ total: data.length, today: todayCalls.length, avgDuration: avg, completed })
+    }
+  }
+
+  async function handleClientChange(clientId) {
+    setSelectedClient(clientId)
+    setExpanded({})
+    if (clientId === 'all') {
+      setClientName('Global Overview')
+      await fetchCalls(null)
+    } else {
+      const client = clients.find(c => c.id === clientId)
+      if (client) setClientName(client.business_name)
+      await fetchCalls(clientId)
+    }
+  }
+
+  const togglePanel = (callId, panel) => {
+    setExpanded(prev => ({ ...prev, [callId]: prev[callId] === panel ? null : panel }))
+  }
+
+  const statCards = [
+    { label: 'Total Volume', value: stats.total, sub: 'Lifetime calls', icon: '📞', color: '#3b82f6' },
+    { label: 'Today', value: stats.today, sub: 'New interactions', icon: '⚡', color: '#10b981' },
+    { label: 'Avg Session', value: stats.avgDuration, unit: 's', sub: 'Handling time', icon: '⏱', color: '#f59e0b' },
+    { label: 'Success Rate', value: stats.total > 0 ? Math.round((stats.completed/stats.total)*100) : 0, unit: '%', sub: 'Completion', icon: '🎯', color: '#8b5cf6' },
+  ]
+
+  if (authLoading) return <div className="loading-screen">Refining Interface...</div>
+
+  return (
+    <div className="dashboard-container">
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap');
+        
+        :root {
+          --bg: #f8fafc;
+          --sidebar: #0f172a;
+          --accent: #2563eb;
+          --text-main: #1e293b;
+          --text-muted: #64748b;
+          --glass-border: rgba(255, 255, 255, 0.7);
+          --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text-main); }
+
+        .dashboard-container { display: flex; min-height: 100vh; }
+
+        /* Sidebar */
+        .sidebar { 
+          width: 280px; background: var(--sidebar); color: white; 
+          padding: 32px 20px; display: flex; flex-direction: column; 
+          position: fixed; height: 100vh; z-index: 1000;
+        }
+        .logo-section { display: flex; align-items: center; gap: 12px; margin-bottom: 40px; }
+        .logo-box { 
+          background: linear-gradient(135deg, #3b82f6, #2563eb); 
+          width: 40px; height: 40px; border-radius: 12px; 
+          display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+          box-shadow: 0 4px 12px rgba(37,99,235, 0.4);
+        }
+        .logo-text { font-weight: 800; font-size: 1.25rem; letter-spacing: -0.5px; }
+        .logo-text span { opacity: 0.7; font-weight: 400; }
+
+        .nav-item { 
+          display: flex; align-items: center; gap: 12px; padding: 12px 16px; 
+          border-radius: 12px; cursor: pointer; color: #94a3b8; font-weight: 500;
+          transition: all 0.2s; margin-bottom: 4px;
+        }
+        .nav-item:hover { background: rgba(255,255,255,0.05); color: white; }
+        .nav-item.active { background: rgba(37,99,235,0.15); color: #60a5fa; border: 1px solid rgba(37,99,235,0.2); }
+
+        /* Main Content */
+        .main-content { flex: 1; margin-left: 280px; padding: 40px; }
+        
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
+        .header h1 { font-size: 1.75rem; font-weight: 800; letter-spacing: -1px; }
+        .live-status { 
+          background: white; padding: 8px 16px; border-radius: 99px; 
+          display: flex; align-items: center; gap: 8px; font-size: 0.8rem;
+          font-weight: 700; border: 1px solid #e2e8f0; box-shadow: var(--shadow);
+        }
+        .pulse { width: 8px; height: 8px; background: #10b981; border-radius: 50%; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16,185,129, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16,185,129, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16,185,129, 0); } }
+
+        /* Stats */
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 32px; }
+        .stat-card { 
+          background: white; padding: 24px; border-radius: 20px; 
+          border: 1px solid var(--glass-border); box-shadow: var(--shadow);
+          transition: transform 0.2s;
+        }
+        .stat-card:hover { transform: translateY(-4px); }
+        .stat-label { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-val { font-size: 2rem; font-weight: 800; margin: 8px 0; display: flex; align-items: baseline; gap: 4px; }
+        .stat-val span { font-size: 1rem; color: var(--text-muted); font-weight: 500; }
+        .stat-sub { font-size: 0.75rem; color: #94a3b8; }
+
+        /* Table Area */
+        .content-card { 
+          background: white; border-radius: 24px; border: 1px solid #e2e8f0; 
+          box-shadow: var(--shadow); overflow: hidden;
+        }
+        .table-header { padding: 24px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
+        .table-header h3 { font-weight: 700; font-size: 1.1rem; }
+        
+        .client-select {
+          padding: 8px 16px; border-radius: 10px; border: 1px solid #e2e8f0;
+          font-family: inherit; font-weight: 600; color: var(--text-main); outline: none; cursor: pointer;
+        }
+
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 16px 24px; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; background: #f8fafc; }
+        td { padding: 18px 24px; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; }
+        
+        .caller-id { font-family: 'JetBrains Mono', monospace; font-weight: 600; color: var(--accent); }
+        
+        .outcome-pill {
+          padding: 4px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: 700;
+          display: inline-flex; align-items: center; gap: 6px;
+        }
+
+        /* Expansion Styling */
+        .expand-box { background: #f8fafc; padding: 24px; border-radius: 16px; margin: 10px 24px 24px; border: 1px dashed #cbd5e1; }
+        .transcript-line { margin-bottom: 12px; padding: 12px; border-radius: 12px; background: white; border: 1px solid #e2e8f0; }
+        .speaker-label { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; margin-bottom: 4px; display: block; color: var(--accent); }
+
+        .btn-group { display: flex; gap: 8px; }
+        .icon-btn { 
+          width: 36px; height: 36px; border-radius: 10px; border: 1px solid #e2e8f0;
+          display: flex; align-items: center; justify-content: center; cursor: pointer;
+          transition: all 0.2s; background: white;
+        }
+        .icon-btn:hover { background: var(--accent); color: white; border-color: var(--accent); }
+        .icon-btn.active { background: var(--sidebar); color: white; }
+
+        .loading-screen { height: 100vh; display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--text-muted); background: #f8fafc; }
+
+        @media (max-width: 1024px) {
+          .sidebar { width: 80px; }
+          .logo-text, .nav-text { display: none; }
+          .main-content { margin-left: 80px; }
+          .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+      `}</style>
+
+      {/* SIDEBAR */}
+      <aside className="sidebar">
+        <div className="logo-section">
+          <div className="logo-box">⚛</div>
+          <div className="logo-text">Karna<span>Connect</span></div>
+        </div>
+        <nav style={{ flex: 1 }}>
+          <div className="nav-item active"><span className="nav-icon">📊</span> <span className="nav-text">Dashboard</span></div>
+          <div className="nav-item"><span className="nav-icon">👥</span> <span className="nav-text">Clients</span></div>
+          <div className="nav-item"><span className="nav-icon">⚙️</span> <span className="nav-text">Settings</span></div>
+        </nav>
+        <div className="nav-item" onClick={() => window.location.href = '/logout'}>
+          <span className="nav-icon">🚪</span> <span className="nav-text">Logout</span>
+        </div>
+      </aside>
+
+      {/* MAIN */}
+      <main className="main-content">
+        <header className="header">
+          <div>
+            <h1>Call Intel Dashboard</h1>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{clientName} • {new Date().toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
+          </div>
+          <div className="live-status">
+            <div className="pulse" />
+            LIVE MONITORING
+            <span style={{ marginLeft: 8, opacity: 0.4 }}>|</span>
+            <span style={{ marginLeft: 8, fontFamily: 'JetBrains Mono' }}>{time.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' })}</span>
+          </div>
+        </header>
+
+        {/* STATS */}
+        <section className="stats-grid">
+          {statCards.map(s => (
+            <div key={s.label} className="stat-card">
+              <div className="stat-label">{s.label}</div>
+              <div className="stat-val" style={{ color: s.color }}>
+                {s.value}<span>{s.unit}</span>
+              </div>
+              <div className="stat-sub">{s.sub}</div>
+            </div>
+          ))}
+        </section>
+
+        {/* TABLE */}
+        <div className="content-card">
+          <div className="table-header">
+            <h3>Recent Communications</h3>
+            {isAdmin && (
+              <select className="client-select" onChange={(e) => handleClientChange(e.target.value)}>
+                <option value="all">All Clients</option>
+                {clients.map(c => <option key={c.id} value={c.id}>{c.business_name}</option>)}
+              </select>
+            )}
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Timestamp</th>
+                <th>Caller Reference</th>
+                <th>Outcome</th>
+                <th>Intelligence</th>
+              </tr>
+            </thead>
+            <tbody>
+              {calls.map(call => (
+                <React.Fragment key={call.id}>
+                  <tr>
+                    <td>{perthDate(call.created_at)}</td>
+                    <td className="caller-id">{call.caller_number || 'Internal Node'}</td>
+                    <td>
+                      <span className="outcome-pill" style={{ 
+                        background: call.call_outcome?.includes('ended') ? '#ecfdf5' : '#fff7ed',
+                        color: call.call_outcome?.includes('ended') ? '#059669' : '#d97706'
+                      }}>
+                        {call.call_outcome?.includes('ended') ? '● Completed' : '○ Voicemail'}
+                      </span>
+                    </td>
+                    <td>
+                      <div className="btn-group">
+                        <button className={`icon-btn ${expanded[call.id] === 'summary' ? 'active' : ''}`} onClick={() => togglePanel(call.id, 'summary')}>📄</button>
+                        <button className={`icon-btn ${expanded[call.id] === 'transcript' ? 'active' : ''}`} onClick={() => togglePanel(call.id, 'transcript')}>📋</button>
+                        {call.recording_url && <button className="icon-btn" onClick={() => window.open(call.recording_url)}>🔊</button>}
+                      </div>
+                    </td>
+                  </tr>
+                  
+                  {/* EXPANDED VIEW */}
+                  {expanded[call.id] && (
+                    <tr>
+                      <td colSpan="4">
+                        <div className="expand-box">
+                          {expanded[call.id] === 'summary' && (
+                            <div>
+                              <strong style={{ display: 'block', marginBottom: 8, fontSize: '0.8rem', color: 'var(--accent)' }}>AI GENERATED SUMMARY</strong>
+                              <p style={{ lineHeight: 1.6, color: '#475569' }}>{call.call_summary || 'No summary available for this session.'}</p>
+                            </div>
+                          )}
+                          {expanded[call.id] === 'transcript' && (
+                            <div className="transcript-container">
+                              {call.full_transcript?.split('\n').map((line, i) => (
+                                <div key={i} className="transcript-line">
+                                  <span className="speaker-label">{line.includes('AI:') ? 'Mash (AI)' : 'Caller'}</span>
+                                  {line.replace(/AI:|User:/g, '')}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </main>
+    </div>
+  )
+}    const { data } = await query
     if (data) {
       setCalls(data)
       const todayCalls = data.filter(c => isToday(c.created_at))
