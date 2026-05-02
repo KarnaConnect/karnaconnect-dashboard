@@ -23,8 +23,6 @@ export default function Dashboard() {
   const [clients, setClients] = useState([])
   const [selectedClient, setSelectedClient] = useState('all')
   const [clientName, setClientName] = useState('All Clients')
-  const [brandColor, setBrandColor] = useState('#2563eb')
-  const [brandTagline, setBrandTagline] = useState('AI Command Centre')
 
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000)
@@ -51,16 +49,11 @@ export default function Dashboard() {
           .from('clients').select('id, business_name').eq('active', true)
         if (allClients) setClients(allClients)
         await fetchCalls(null)
-     } else if (userClient && userClient.client_id) {
+      } else if (userClient && userClient.client_id) {
         setIsAdmin(false)
-        const { data: cd } = await supabase.from('clients')
-          .select('business_name, brand_name, brand_color, brand_tagline')
+        const { data: cd } = await supabase.from('clients').select('business_name')
           .eq('id', userClient.client_id).single()
-        if (cd) {
-          setClientName(cd.brand_name || cd.business_name)
-          if (cd.brand_color) setBrandColor(cd.brand_color)
-          if (cd.brand_tagline) setBrandTagline(cd.brand_tagline)
-        }
+        if (cd) setClientName(cd.business_name)
         await fetchCalls(userClient.client_id)
       }
     }
@@ -150,7 +143,7 @@ export default function Dashboard() {
         .sidebar-top { padding:24px 20px 18px; border-bottom:1px solid rgba(255,255,255,0.05); }
         .logo-row { display:flex; align-items:center; gap:9px; }
         .logo-atom { width:34px; height:34px; border-radius:9px; flex-shrink:0; background:linear-gradient(135deg,#2563eb,#06b6d4); display:flex; align-items:center; justify-content:center; font-size:1rem; box-shadow:0 4px 12px rgba(37,99,235,0.35); }
-        .logo-sub { font-size:0.58rem; color:#2a3f6b; text-transform:uppercase; letter-spacing:1.5px; margin-top:5px; padding-left:43px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:200px; }
+        .logo-text { font-size:1.15rem; font-weight:800; color:#fff; letter-spacing:-0.3px; white-space:nowrap; }
         .logo-text span { color:#06b6d4; }
         .logo-sub { font-size:0.62rem; color:#2a3f6b; text-transform:uppercase; letter-spacing:2px; margin-top:5px; padding-left:43px; }
         .live-pill { margin:14px 20px 0; background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.18); border-radius:8px; padding:7px 11px; display:flex; align-items:center; gap:8px; }
@@ -287,14 +280,14 @@ export default function Dashboard() {
         <div className={`sidebar ${mobileNav ? 'mobile-open' : ''}`}>
           <div className="sidebar-top">
             <div className="logo-row">
-              <div className="logo-atom" style={{background: `linear-gradient(135deg, ${brandColor}, #06b6d4)`}}>⚛</div>
-  <div className="logo-text" style={{color:'#fff'}}>{isAdmin ? 'KarnaConnect' : clientName}</div>
-</div>
-<div className="logo-sub">{isAdmin ? 'Enterprise Admin' : brandTagline}</div>
+              <div className="logo-atom">⚛</div>
+              <div className="logo-text">Karna<span>Connect</span></div>
+            </div>
+            <div className="logo-sub">{isAdmin ? 'Enterprise Admin' : 'AI Command Centre'}</div>
           </div>
           <div className="live-pill">
             <div className="live-dot" />
-            <div className="page-title">{isAdmin ? 'Call Dashboard' : `${clientName} — Calls`}</div>
+            <div className="live-label">Mash is live</div>
             <div className="live-clock">
               {time.toLocaleTimeString('en-AU', { timeZone: PERTH, hour:'2-digit', minute:'2-digit', second:'2-digit' })}
             </div>
@@ -321,7 +314,7 @@ export default function Dashboard() {
         <main className="main">
           <div className="topbar">
             <div>
-              <div className="page-title">{isAdmin ? 'Call Dashboard' : `${clientName} — Calls`}</div>
+              <div className="page-title">Call Dashboard</div>
               <div className="page-sub">
                 {new Date().toLocaleDateString('en-AU', { timeZone: PERTH, weekday:'long', year:'numeric', month:'long', day:'numeric' })}
               </div>
