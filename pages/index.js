@@ -292,18 +292,18 @@ export default function Dashboard() {
               {time.toLocaleTimeString('en-AU', { timeZone: PERTH, hour:'2-digit', minute:'2-digit', second:'2-digit' })}
             </div>
           </div>
-          <nav className="nav-wrap">
-            <div className="nav-group-label">Main</div>
-            <div className="nav-item active"><span className="nav-icon">📞</span>Call Dashboard</div>
-            <div className="nav-item"><span className="nav-icon">👥</span>Clients</div>
-            <div className="nav-item"><span className="nav-icon">🤖</span>Agents</div>
-            <div className="nav-group-label">Insights</div>
-            <div className="nav-item"><span className="nav-icon">📊</span>Analytics</div>
-            <div className="nav-item"><span className="nav-icon">📋</span>Transcripts</div>
-            <div className="nav-group-label">System</div>
-            <div className="nav-item"><span className="nav-icon">🔗</span>CRM Connect</div>
-            <div className="nav-item"><span className="nav-icon">⚙️</span>Settings</div>
-          </nav>
+         <nav className="nav-wrap">
+  <div className="nav-group-label">Main</div>
+  <div className="nav-item active" onClick={() => window.location.href = '/'}><span className="nav-icon">📞</span>Call Dashboard</div>
+  <div className="nav-item"><span className="nav-icon">👥</span>Clients</div>
+  <div className="nav-item"><span className="nav-icon">🤖</span>Agents</div>
+  <div className="nav-group-label">Insights</div>
+  <div className="nav-item" onClick={() => window.location.href = '/analytics'}><span className="nav-icon">📊</span>Analytics</div>
+  <div className="nav-item"><span className="nav-icon">📋</span>Transcripts</div>
+  <div className="nav-group-label">System</div>
+  <div className="nav-item"><span className="nav-icon">🔗</span>CRM Connect</div>
+  <div className="nav-item"><span className="nav-icon">⚙️</span>Settings</div>
+</nav>
           <div className="sidebar-foot">
             <div>South Lake WA 6164</div>
             <div style={{color:'#152550', marginTop:'2px'}}>© 2026 KarnaConnect</div>
