@@ -414,20 +414,41 @@ export default function Dashboard() {
                             }}>● {outcomeLabel(call.call_outcome)}</span>
                           </td>
                           <td className="summary-col">
-                         {call.call_summary || call.full_transcript
-  ? <span className="summary-link">{expanded === call.id ? '▲ Hide' : '▼ View'}</span>
+                         {call.call_summary || call.full_transcript || call.recording_url
+  ? <span className="summary-link">{expanded === call.id ? '▲ Hide' : '▼ View'}{call.recording_url ? ' 🎙' : ''}</span>
   : <span style={{color:'#e2e8f0'}}>—</span>}
                           </td>
                         </tr>
                       {expanded === call.id && (
   <tr key={call.id + '-exp'} className="summary-expand">
     <td colSpan={5}>
-      {call.call_summary && (
-        <>
-          <div className="summary-expand-label">⚛ AI Summary — Mash</div>
-          <p style={{marginBottom: '16px'}}>{call.call_summary}</p>
-        </>
-      )}
+      {call.recording_url && (
+  <>
+    <div className="summary-expand-label">🎙 Call Recording</div>
+    <audio controls style={{
+      width: '100%', marginBottom: '16px', borderRadius: '8px',
+      height: '36px', accentColor: '#2563eb'
+    }}>
+      <source src={call.recording_url} type="audio/wav" />
+    </audio>
+  </>
+)}
+{call.recording_url && (
+  <>
+    <div className="summary-label-sm">🎙 Recording</div>
+    <audio controls style={{
+      width: '100%', marginBottom: '10px', borderRadius: '6px', height: '32px'
+    }}>
+      <source src={call.recording_url} type="audio/wav" />
+    </audio>
+  </>
+)}
+{call.call_summary && (
+  <>
+    <div className="summary-label-sm">⚛ AI Summary — Mash</div>
+    <p style={{marginBottom: '12px'}}>{call.call_summary}</p>
+  </>
+)}
       {call.full_transcript && (
         <>
           <div className="summary-expand-label" style={{marginTop: '8px'}}>📋 Full Transcript</div>
