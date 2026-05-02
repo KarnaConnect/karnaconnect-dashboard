@@ -414,9 +414,9 @@ export default function Dashboard() {
                             }}>● {outcomeLabel(call.call_outcome)}</span>
                           </td>
                           <td className="summary-col">
-                            {call.call_summary
-                              ? <span className="summary-link">{expanded === call.id ? '▲ Hide' : '▼ View'}</span>
-                              : <span style={{color:'#e2e8f0'}}>—</span>}
+                         {call.call_summary || call.full_transcript
+  ? <span className="summary-link">{expanded === call.id ? '▲ Hide' : '▼ View'}</span>
+  : <span style={{color:'#e2e8f0'}}>—</span>}
                           </td>
                         </tr>
                       {expanded === call.id && (
