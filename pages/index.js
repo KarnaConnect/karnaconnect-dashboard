@@ -150,7 +150,7 @@ export default function Dashboard() {
         .sidebar-top { padding:24px 20px 18px; border-bottom:1px solid rgba(255,255,255,0.05); }
         .logo-row { display:flex; align-items:center; gap:9px; }
         .logo-atom { width:34px; height:34px; border-radius:9px; flex-shrink:0; background:linear-gradient(135deg,#2563eb,#06b6d4); display:flex; align-items:center; justify-content:center; font-size:1rem; box-shadow:0 4px 12px rgba(37,99,235,0.35); }
-        .logo-text { font-size:1.15rem; font-weight:800; color:#fff; letter-spacing:-0.3px; white-space:nowrap; }
+        .logo-sub { font-size:0.58rem; color:#2a3f6b; text-transform:uppercase; letter-spacing:1.5px; margin-top:5px; padding-left:43px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:200px; }
         .logo-text span { color:#06b6d4; }
         .logo-sub { font-size:0.62rem; color:#2a3f6b; text-transform:uppercase; letter-spacing:2px; margin-top:5px; padding-left:43px; }
         .live-pill { margin:14px 20px 0; background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.18); border-radius:8px; padding:7px 11px; display:flex; align-items:center; gap:8px; }
