@@ -54,14 +54,20 @@ export default function Analytics() {
 
   async function fetchCalls(clientId) {
     let query = supabase.from('calls').select('*').order('created_at', { ascending: false })
-    if (clientId) query = query.eq('client_id', clientId)
+    if (clientId && clientId !== 'all') {
+      query = query.eq('client_id', clientId)
+    }
     const { data } = await query
     if (data) setCalls(data)
   }
 
   async function handleClientChange(clientId) {
     setSelectedClient(clientId)
-    await fetchCalls(clientId === 'all' ? null : clientId)
+    if (clientId === 'all') {
+      await fetchCalls(null)
+    } else {
+      await fetchCalls(clientId)
+    }
   }
 
   // --- Analytics calculations ---
