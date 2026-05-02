@@ -23,6 +23,8 @@ export default function Dashboard() {
   const [clients, setClients] = useState([])
   const [selectedClient, setSelectedClient] = useState('all')
   const [clientName, setClientName] = useState('All Clients')
+  const [brandColor, setBrandColor] = useState('#2563eb')
+  const [brandTagline, setBrandTagline] = useState('AI Command Centre')
 
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000)
