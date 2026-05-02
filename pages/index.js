@@ -419,14 +419,50 @@ export default function Dashboard() {
                               : <span style={{color:'#e2e8f0'}}>—</span>}
                           </td>
                         </tr>
-                        {expanded === call.id && call.call_summary && (
-                          <tr key={call.id + '-exp'} className="summary-expand">
-                            <td colSpan={5}>
-                              <div className="summary-expand-label">⚛ AI Summary — Mash</div>
-                              {call.call_summary}
-                            </td>
-                          </tr>
-                        )}
+                      {expanded === call.id && (
+  <tr key={call.id + '-exp'} className="summary-expand">
+    <td colSpan={5}>
+      {call.call_summary && (
+        <>
+          <div className="summary-expand-label">⚛ AI Summary — Mash</div>
+          <p style={{marginBottom: '16px'}}>{call.call_summary}</p>
+        </>
+      )}
+      {call.full_transcript && (
+        <>
+          <div className="summary-expand-label" style={{marginTop: '8px'}}>📋 Full Transcript</div>
+          <div style={{
+            background: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px',
+            padding: '16px', marginTop: '8px', maxHeight: '300px', overflowY: 'auto'
+          }}>
+            {call.full_transcript.split('\n').map((line, i) => {
+              const isAI = line.startsWith('AI:')
+              const isUser = line.startsWith('User:')
+              return line.trim() ? (
+                <div key={i} style={{
+                  marginBottom: '10px', padding: '8px 12px', borderRadius: '8px',
+                  background: isAI ? '#eff6ff' : isUser ? '#f0fdf4' : 'transparent',
+                  borderLeft: isAI ? '3px solid #2563eb' : isUser ? '3px solid #10b981' : 'none'
+                }}>
+                  <span style={{
+                    fontSize: '0.68rem', fontWeight: '700', textTransform: 'uppercase',
+                    letterSpacing: '1px', color: isAI ? '#2563eb' : '#10b981',
+                    display: 'block', marginBottom: '4px'
+                  }}>
+                    {isAI ? '⚛ Mash' : isUser ? '👤 Caller' : ''}
+                  </span>
+                  <span style={{fontSize: '0.85rem', color: '#334155', lineHeight: '1.6'}}>
+                    {line.replace('AI: ', '').replace('User: ', '')}
+                  </span>
+                </div>
+              ) : null
+            })}
+          </div>
+        </>
+      )}
+    </td>
+  </tr>
+)}
                       </>
                     ))}
                   </tbody>
