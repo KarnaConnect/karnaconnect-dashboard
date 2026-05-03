@@ -244,6 +244,7 @@ export default function Analytics() {
   <div className="nav-item"><span className="nav-icon">🤖</span>Agents</div>
   <div className="nav-group-label">Insights</div>
   <div className="nav-item" onClick={() => window.location.href = '/analytics'}><span className="nav-icon">📊</span>Analytics</div>
+  <div className="nav-item" onClick={() => window.location.href = '/usage'}><span className="nav-icon">💳</span>Usage & Billing</div>
   <div className="nav-item"><span className="nav-icon">📋</span>Transcripts</div>
   <div className="nav-group-label">System</div>
   <div className="nav-item"><span className="nav-icon">🔗</span>CRM Connect</div>
