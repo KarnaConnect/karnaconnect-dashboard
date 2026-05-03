@@ -303,8 +303,9 @@ export default function Dashboard() {
   <div className="nav-group-label">System</div>
   <div className="nav-item"><span className="nav-icon">🔗</span>CRM Connect</div>
   <div className="nav-item"><span className="nav-icon">⚙️</span>Settings</div>
+  <div className="nav-item" onClick={() => window.location.href = '/usage'}><span className="nav-icon">💳</span>Usage & Billing</div>
 </nav>
-          <div className="sidebar-foot">
+            <div className="sidebar-foot">
             <div>South Lake WA 6164</div>
             <div style={{color:'#152550', marginTop:'2px'}}>© 2026 KarnaConnect</div>
             <button className="logout-btn" onClick={handleLogout}>🚪 Sign Out</button>
