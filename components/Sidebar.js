@@ -52,7 +52,8 @@ export default function Sidebar({ isAdmin, activePage, mobileOpen, onClose }) {
     <>
       <style>{`
         .sidebar { width:240px; flex-shrink:0; background:linear-gradient(180deg,#08112b 0%,#0d1a3a 100%); display:flex; flex-direction:column; position:fixed; top:0; left:0; height:100vh; z-index:200; border-right:1px solid rgba(37,99,235,0.12); transition:transform 0.3s ease; }
-        .sidebar.mobile-open { transform:translateX(0) !important; }
+@media (max-width:900px) { .sidebar { transform:translateX(-100%); } }
+.sidebar.mobile-open { transform:translateX(0) !important; }
         .sidebar-top { padding:24px 20px 18px; border-bottom:1px solid rgba(255,255,255,0.05); }
         .logo-row { display:flex; align-items:center; gap:9px; }
         .logo-atom { width:34px; height:34px; border-radius:9px; flex-shrink:0; background:linear-gradient(135deg,#2563eb,#06b6d4); display:flex; align-items:center; justify-content:center; font-size:1rem; box-shadow:0 4px 12px rgba(37,99,235,0.35); }
