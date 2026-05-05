@@ -39,10 +39,19 @@ export default function Usage() {
 
       if (userClient && userClient.role === 'admin') {
         setIsAdmin(true)
-        const { data: allClients } = await supabase
-          .from('clients')
-          .select('id, business_name, monthly_minutes_used, billing_start_date, plan_id, plans(name, minutes_per_month, price_per_month, overage_per_minute, response_time_hours)')
-          .eq('active', true)
+       const { data: allClients } = await supabase
+  .from('clients')
+  .select('id, business_name, monthly_minutes_used, billing_start_date, plan_id')
+  .eq('active', true)
+
+if (allClients) {
+  const { data: allPlans } = await supabase.from('plans').select('*')
+  const enriched = allClients.map(c => ({
+    ...c,
+    plans: allPlans?.find(p => p.id === c.plan_id) || null
+  }))
+  setClients(enriched)
+}
         if (allClients) setClients(allClients)
       } else if (userClient && userClient.client_id) {
         await fetchClientUsage(userClient.client_id)
@@ -52,12 +61,18 @@ export default function Usage() {
   }, [user])
 
   async function fetchClientUsage(clientId) {
-    const { data } = await supabase
-      .from('clients')
-      .select('id, business_name, monthly_minutes_used, billing_start_date, plans(name, minutes_per_month, price_per_month, overage_per_minute, response_time_hours)')
-      .eq('id', clientId).single()
-    if (data) setUsageData(data)
+  const { data } = await supabase
+    .from('clients')
+    .select('id, business_name, monthly_minutes_used, billing_start_date, plan_id')
+    .eq('id', clientId).single()
+  
+  if (data) {
+    const { data: plan } = await supabase
+      .from('plans').select('*')
+      .eq('id', data.plan_id).single()
+    setUsageData({ ...data, plans: plan })
   }
+}
 
   async function handleClientSelect(clientId) {
     setSelectedClient(clientId)
