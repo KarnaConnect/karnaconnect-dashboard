@@ -52,7 +52,6 @@ if (allClients) {
   }))
   setClients(enriched)
 }
-        if (allClients) setClients(allClients)
       } else if (userClient && userClient.client_id) {
         await fetchClientUsage(userClient.client_id)
       }
