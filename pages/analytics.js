@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
+import Sidebar from '../components/Sidebar'
 
 const supabase = createClient(
   'https://enxajqahxnbgxwigvsjz.supabase.co',
@@ -18,12 +19,6 @@ export default function Analytics() {
   const [clients, setClients] = useState([])
   const [selectedClient, setSelectedClient] = useState('all')
   const [mobileNav, setMobileNav] = useState(false)
-  const [time, setTime] = useState(new Date())
-
-  useEffect(() => {
-    const timer = setInterval(() => setTime(new Date()), 1000)
-    return () => clearInterval(timer)
-  }, [])
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -54,23 +49,16 @@ export default function Analytics() {
 
   async function fetchCalls(clientId) {
     let query = supabase.from('calls').select('*').order('created_at', { ascending: false })
-    if (clientId && clientId !== 'all') {
-      query = query.eq('client_id', clientId)
-    }
+    if (clientId && clientId !== 'all') query = query.eq('client_id', clientId)
     const { data } = await query
     if (data) setCalls(data)
   }
 
   async function handleClientChange(clientId) {
     setSelectedClient(clientId)
-    if (clientId === 'all') {
-      await fetchCalls(null)
-    } else {
-      await fetchCalls(clientId)
-    }
+    await fetchCalls(clientId === 'all' ? null : clientId)
   }
 
-  // --- Analytics calculations ---
   const last30Days = Array.from({ length: 30 }, (_, i) => {
     const d = new Date()
     d.setDate(d.getDate() - (29 - i))
@@ -102,10 +90,9 @@ export default function Analytics() {
       return parseInt(h) === i
     }).length
   }))
+
   const maxHourCount = Math.max(...hourBuckets.map(h => h.count), 1)
   const peakHour = hourBuckets.reduce((a, b) => a.count > b.count ? a : b)
-
-  const busyDay = callsByDay.reduce((a, b) => a.count > b.count ? a : b)
   const todayCount = calls.filter(c => isToday(c.created_at)).length
   const durations = calls.filter(c => c.call_duration).map(c => parseFloat(c.call_duration))
   const avgDuration = durations.length ? Math.round(durations.reduce((a, b) => a + b, 0) / durations.length) : 0
@@ -124,28 +111,6 @@ export default function Analytics() {
         html, body { height:100%; }
         body { font-family:'Plus Jakarta Sans',sans-serif; background:#eef2f9; -webkit-font-smoothing:antialiased; }
         .layout { display:flex; min-height:100vh; }
-        .sidebar { width:240px; flex-shrink:0; background:linear-gradient(180deg,#08112b 0%,#0d1a3a 100%); display:flex; flex-direction:column; position:fixed; top:0; left:0; height:100vh; z-index:200; border-right:1px solid rgba(37,99,235,0.12); transition:transform 0.3s ease; }
-        .sidebar-top { padding:24px 20px 18px; border-bottom:1px solid rgba(255,255,255,0.05); }
-        .logo-row { display:flex; align-items:center; gap:9px; }
-        .logo-atom { width:34px; height:34px; border-radius:9px; flex-shrink:0; background:linear-gradient(135deg,#2563eb,#06b6d4); display:flex; align-items:center; justify-content:center; font-size:1rem; box-shadow:0 4px 12px rgba(37,99,235,0.35); }
-        .logo-text { font-size:1.15rem; font-weight:800; color:#fff; letter-spacing:-0.3px; white-space:nowrap; }
-        .logo-text span { color:#06b6d4; }
-        .logo-sub { font-size:0.62rem; color:#2a3f6b; text-transform:uppercase; letter-spacing:2px; margin-top:5px; padding-left:43px; }
-        .live-pill { margin:14px 20px 0; background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.18); border-radius:8px; padding:7px 11px; display:flex; align-items:center; gap:8px; }
-        .live-dot { width:7px; height:7px; border-radius:50%; background:#10b981; flex-shrink:0; animation:lp 2s infinite; box-shadow:0 0 0 0 rgba(16,185,129,0.5); }
-        @keyframes lp { 0%{box-shadow:0 0 0 0 rgba(16,185,129,0.5)} 70%{box-shadow:0 0 0 7px rgba(16,185,129,0)} 100%{box-shadow:0 0 0 0 rgba(16,185,129,0)} }
-        .live-label { font-size:0.72rem; color:#10b981; font-weight:700; flex:1; white-space:nowrap; }
-        .live-clock { font-family:'JetBrains Mono',monospace; font-size:0.68rem; color:#2a4070; font-variant-numeric:tabular-nums; white-space:nowrap; }
-        .nav-wrap { padding:16px 10px; flex:1; overflow-y:auto; }
-        .nav-group-label { font-size:0.6rem; text-transform:uppercase; letter-spacing:2px; color:#1e3060; font-weight:700; padding:0 10px; margin:12px 0 6px; }
-        .nav-item { display:flex; align-items:center; gap:9px; padding:9px 12px; border-radius:9px; margin-bottom:2px; color:#3d5a8a; font-size:0.83rem; font-weight:500; cursor:pointer; transition:all 0.18s; position:relative; white-space:nowrap; overflow:hidden; }
-        .nav-item.active { background:linear-gradient(135deg,rgba(37,99,235,0.18),rgba(6,182,212,0.08)); color:#e8f0ff; border:1px solid rgba(37,99,235,0.25); }
-        .nav-item.active::before { content:''; position:absolute; left:0; top:20%; bottom:20%; width:3px; background:linear-gradient(180deg,#2563eb,#06b6d4); border-radius:0 3px 3px 0; }
-        .nav-item:hover:not(.active) { background:rgba(255,255,255,0.04); color:#7a9cc8; }
-        .nav-icon { font-size:0.95rem; width:17px; text-align:center; flex-shrink:0; }
-        .sidebar-foot { padding:14px 20px; border-top:1px solid rgba(255,255,255,0.04); font-size:0.68rem; color:#1e3060; line-height:1.8; }
-        .logout-btn { width:100%; margin-top:8px; padding:8px 12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.06); border-radius:8px; color:#3d5a8a; font-size:0.78rem; font-weight:600; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; transition:all 0.2s; text-align:left; display:flex; align-items:center; gap:8px; }
-        .logout-btn:hover { background:rgba(239,68,68,0.1); color:#ef4444; border-color:rgba(239,68,68,0.2); }
         .mobile-topbar { display:none; position:fixed; top:0; left:0; right:0; z-index:100; background:#08112b; padding:14px 20px; align-items:center; justify-content:space-between; border-bottom:1px solid rgba(37,99,235,0.15); }
         .hamburger { background:none; border:none; color:#94a3b8; font-size:1.3rem; cursor:pointer; padding:4px; }
         .mobile-logo { font-size:1.05rem; font-weight:800; color:#fff; }
@@ -198,8 +163,6 @@ export default function Analytics() {
         .overlay { display:none; position:fixed; inset:0; background:rgba(8,17,43,0.5); z-index:150; backdrop-filter:blur(2px); }
         .overlay.show { display:block; }
         @media (max-width:900px) {
-          .sidebar { transform:translateX(-100%); }
-          .sidebar.mobile-open { transform:translateX(0); }
           .mobile-topbar { display:flex; }
           .main { margin-left:0; padding:80px 16px 24px; }
           .insight-grid { grid-template-columns:repeat(2,1fr); gap:12px; }
@@ -222,40 +185,7 @@ export default function Analytics() {
       </div>
 
       <div className="layout">
-        <div className={`sidebar ${mobileNav ? 'mobile-open' : ''}`}>
-          <div className="sidebar-top">
-            <div className="logo-row">
-              <div className="logo-atom">⚛</div>
-              <div className="logo-text">Karna<span>Connect</span></div>
-            </div>
-            <div className="logo-sub">{isAdmin ? 'Enterprise Admin' : 'AI Command Centre'}</div>
-          </div>
-          <div className="live-pill">
-            <div className="live-dot" />
-            <div className="live-label">Mash is live</div>
-            <div className="live-clock">
-              {time.toLocaleTimeString('en-AU', { timeZone: PERTH, hour:'2-digit', minute:'2-digit', second:'2-digit' })}
-            </div>
-          </div>
-         <nav className="nav-wrap">
-  <div className="nav-group-label">Main</div>
-  <div className="nav-item active" onClick={() => window.location.href = '/'}><span className="nav-icon">📞</span>Call Dashboard</div>
-  <div className="nav-item"><span className="nav-icon">👥</span>Clients</div>
-  <div className="nav-item"><span className="nav-icon">🤖</span>Agents</div>
-  <div className="nav-group-label">Insights</div>
-  <div className="nav-item" onClick={() => window.location.href = '/analytics'}><span className="nav-icon">📊</span>Analytics</div>
-  <div className="nav-item" onClick={() => window.location.href = '/usage'}><span className="nav-icon">💳</span>Usage & Billing</div>
-  <div className="nav-item"><span className="nav-icon">📋</span>Transcripts</div>
-  <div className="nav-group-label">System</div>
-  <div className="nav-item"><span className="nav-icon">🔗</span>CRM Connect</div>
-  <div className="nav-item"><span className="nav-icon">⚙️</span>Settings</div>
-</nav>
-          <div className="sidebar-foot">
-            <div>South Lake WA 6164</div>
-            <div style={{color:'#152550', marginTop:'2px'}}>© 2026 KarnaConnect</div>
-            <button className="logout-btn" onClick={async () => { await supabase.auth.signOut(); window.location.href = '/login' }}>🚪 Sign Out</button>
-          </div>
-        </div>
+        <Sidebar isAdmin={isAdmin} activePage="analytics" mobileOpen={mobileNav} onClose={() => setMobileNav(false)} />
 
         <main className="main">
           <div className="topbar">
@@ -278,7 +208,6 @@ export default function Analytics() {
             </div>
           )}
 
-          {/* INSIGHT CARDS */}
           <div className="insight-grid">
             <div className="insight-card i1">
               <div className="insight-label">Total Calls</div>
@@ -302,26 +231,17 @@ export default function Analytics() {
             </div>
           </div>
 
-          {/* CHARTS ROW 1 */}
           <div className="charts-grid">
-            {/* CALL VOLUME BAR CHART */}
             <div className="chart-card">
               <div className="chart-hdr">
                 <div className="chart-title">📈 Call Volume — Last 30 Days</div>
-                <div className="chart-sub">{calls.filter(c => {
-                  const d = new Date(); d.setDate(d.getDate() - 30)
-                  return new Date(c.created_at) > d
-                }).length} calls</div>
+                <div className="chart-sub">{calls.filter(c => { const d = new Date(); d.setDate(d.getDate() - 30); return new Date(c.created_at) > d }).length} calls</div>
               </div>
               <div className="chart-body">
                 <div className="bar-chart">
                   {callsByDay.map((d, i) => (
                     <div key={i} className="bar-wrap">
-                      <div
-                        className="bar"
-                        style={{ height: `${Math.max((d.count / maxDayCount) * 100, d.count > 0 ? 5 : 0)}%` }}
-                        title={`${d.day}: ${d.count} calls`}
-                      />
+                      <div className="bar" style={{ height: `${Math.max((d.count / maxDayCount) * 100, d.count > 0 ? 5 : 0)}%` }} title={`${d.day}: ${d.count} calls`} />
                       {i % 5 === 0 && <div className="bar-label">{d.day}</div>}
                     </div>
                   ))}
@@ -329,7 +249,6 @@ export default function Analytics() {
               </div>
             </div>
 
-            {/* OUTCOME DONUT */}
             <div className="chart-card">
               <div className="chart-hdr">
                 <div className="chart-title">🎯 Call Outcomes</div>
@@ -347,16 +266,9 @@ export default function Analytics() {
                         const pct = count / Math.max(totalOutcomes, 1)
                         const dash = pct * circ
                         const el = (
-                          <circle
-                            key={label}
-                            cx="60" cy="60" r={r}
-                            fill="none"
-                            stroke={outcomeColors[label]}
-                            strokeWidth="18"
-                            strokeDasharray={`${dash} ${circ - dash}`}
-                            strokeDashoffset={-offset * circ}
-                            style={{ transform: 'rotate(-90deg)', transformOrigin: '60px 60px' }}
-                          />
+                          <circle key={label} cx="60" cy="60" r={r} fill="none" stroke={outcomeColors[label]} strokeWidth="18"
+                            strokeDasharray={`${dash} ${circ - dash}`} strokeDashoffset={-offset * circ}
+                            style={{ transform: 'rotate(-90deg)', transformOrigin: '60px 60px' }} />
                         )
                         offset += pct
                         return el
@@ -368,10 +280,7 @@ export default function Analytics() {
                   <div className="donut-legend">
                     {Object.entries(outcomes).map(([label, count]) => (
                       <div key={label} className="legend-item">
-                        <div className="legend-name">
-                          <div className="legend-dot" style={{ background: outcomeColors[label] }} />
-                          {label}
-                        </div>
+                        <div className="legend-name"><div className="legend-dot" style={{ background: outcomeColors[label] }} />{label}</div>
                         <div className="legend-val">{count}</div>
                       </div>
                     ))}
@@ -381,7 +290,6 @@ export default function Analytics() {
             </div>
           </div>
 
-          {/* CALLS BY HOUR */}
           <div className="chart-card">
             <div className="chart-hdr">
               <div className="chart-title">🕐 Calls by Hour of Day (AWST)</div>
@@ -391,18 +299,13 @@ export default function Analytics() {
               <div className="hour-chart">
                 {hourBuckets.map((h, i) => (
                   <div key={i} className="hour-bar-wrap">
-                    <div
-                      className={`hour-bar ${h.hour === peakHour.hour ? 'peak' : ''}`}
-                      style={{ height: `${Math.max((h.count / maxHourCount) * 100, h.count > 0 ? 8 : 0)}%` }}
-                      title={`${h.label}: ${h.count} calls`}
-                    />
+                    <div className={`hour-bar ${h.hour === peakHour.hour ? 'peak' : ''}`} style={{ height: `${Math.max((h.count / maxHourCount) * 100, h.count > 0 ? 8 : 0)}%` }} title={`${h.label}: ${h.count} calls`} />
                     {i % 3 === 0 && <div className="hour-label">{h.label.replace(':00', '')}</div>}
                   </div>
                 ))}
               </div>
             </div>
           </div>
-
         </main>
       </div>
     </>
