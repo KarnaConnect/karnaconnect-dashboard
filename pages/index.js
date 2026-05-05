@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
+import Sidebar from '../components/Sidebar'
 
 const supabase = createClient(
   'https://enxajqahxnbgxwigvsjz.supabase.co',
@@ -15,7 +16,6 @@ export default function Dashboard() {
   const [calls, setCalls] = useState([])
   const [expanded, setExpanded] = useState({})
   const [stats, setStats] = useState({ total: 0, today: 0, avgDuration: 0, completed: 0 })
-  const [time, setTime] = useState(new Date())
   const [mobileNav, setMobileNav] = useState(false)
   const [user, setUser] = useState(null)
   const [authLoading, setAuthLoading] = useState(true)
@@ -23,11 +23,6 @@ export default function Dashboard() {
   const [clients, setClients] = useState([])
   const [selectedClient, setSelectedClient] = useState('all')
   const [clientName, setClientName] = useState('All Clients')
-
-  useEffect(() => {
-    const timer = setInterval(() => setTime(new Date()), 1000)
-    return () => clearInterval(timer)
-  }, [])
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -63,7 +58,6 @@ export default function Dashboard() {
   async function fetchCalls(clientId) {
     let query = supabase.from('calls').select('*').order('created_at', { ascending: false })
     if (clientId) query = query.eq('client_id', clientId)
-
     const { data } = await query
     if (data) {
       setCalls(data)
@@ -86,11 +80,6 @@ export default function Dashboard() {
       if (client) setClientName(client.business_name)
       await fetchCalls(clientId)
     }
-  }
-
-  async function handleLogout() {
-    await supabase.auth.signOut()
-    window.location.href = '/login'
   }
 
   function togglePanel(callId, panel) {
@@ -139,28 +128,6 @@ export default function Dashboard() {
         html, body { height:100%; }
         body { font-family:'Plus Jakarta Sans',sans-serif; background:#eef2f9; -webkit-font-smoothing:antialiased; }
         .layout { display:flex; min-height:100vh; }
-        .sidebar { width:240px; flex-shrink:0; background:linear-gradient(180deg,#08112b 0%,#0d1a3a 100%); display:flex; flex-direction:column; position:fixed; top:0; left:0; height:100vh; z-index:200; border-right:1px solid rgba(37,99,235,0.12); transition:transform 0.3s ease; }
-        .sidebar-top { padding:24px 20px 18px; border-bottom:1px solid rgba(255,255,255,0.05); }
-        .logo-row { display:flex; align-items:center; gap:9px; }
-        .logo-atom { width:34px; height:34px; border-radius:9px; flex-shrink:0; background:linear-gradient(135deg,#2563eb,#06b6d4); display:flex; align-items:center; justify-content:center; font-size:1rem; box-shadow:0 4px 12px rgba(37,99,235,0.35); }
-        .logo-text { font-size:1.15rem; font-weight:800; color:#fff; letter-spacing:-0.3px; white-space:nowrap; }
-        .logo-text span { color:#06b6d4; }
-        .logo-sub { font-size:0.62rem; color:#2a3f6b; text-transform:uppercase; letter-spacing:2px; margin-top:5px; padding-left:43px; }
-        .live-pill { margin:14px 20px 0; background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.18); border-radius:8px; padding:7px 11px; display:flex; align-items:center; gap:8px; }
-        .live-dot { width:7px; height:7px; border-radius:50%; background:#10b981; flex-shrink:0; box-shadow:0 0 0 0 rgba(16,185,129,0.5); animation:lp 2s infinite; }
-        @keyframes lp { 0%{box-shadow:0 0 0 0 rgba(16,185,129,0.5)} 70%{box-shadow:0 0 0 7px rgba(16,185,129,0)} 100%{box-shadow:0 0 0 0 rgba(16,185,129,0)} }
-        .live-label { font-size:0.72rem; color:#10b981; font-weight:700; flex:1; white-space:nowrap; }
-        .live-clock { font-family:'JetBrains Mono',monospace; font-size:0.68rem; color:#2a4070; font-variant-numeric:tabular-nums; white-space:nowrap; }
-        .nav-wrap { padding:16px 10px; flex:1; overflow-y:auto; }
-        .nav-group-label { font-size:0.6rem; text-transform:uppercase; letter-spacing:2px; color:#1e3060; font-weight:700; padding:0 10px; margin:12px 0 6px; }
-        .nav-item { display:flex; align-items:center; gap:9px; padding:9px 12px; border-radius:9px; margin-bottom:2px; color:#3d5a8a; font-size:0.83rem; font-weight:500; cursor:pointer; transition:all 0.18s; position:relative; white-space:nowrap; overflow:hidden; }
-        .nav-item.active { background:linear-gradient(135deg,rgba(37,99,235,0.18),rgba(6,182,212,0.08)); color:#e8f0ff; border:1px solid rgba(37,99,235,0.25); }
-        .nav-item.active::before { content:''; position:absolute; left:0; top:20%; bottom:20%; width:3px; background:linear-gradient(180deg,#2563eb,#06b6d4); border-radius:0 3px 3px 0; }
-        .nav-item:hover:not(.active) { background:rgba(255,255,255,0.04); color:#7a9cc8; }
-        .nav-icon { font-size:0.95rem; width:17px; text-align:center; flex-shrink:0; }
-        .sidebar-foot { padding:14px 20px; border-top:1px solid rgba(255,255,255,0.04); font-size:0.68rem; color:#1e3060; line-height:1.8; }
-        .logout-btn { width:100%; margin-top:8px; padding:8px 12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.06); border-radius:8px; color:#3d5a8a; font-size:0.78rem; font-weight:600; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; transition:all 0.2s; text-align:left; display:flex; align-items:center; gap:8px; }
-        .logout-btn:hover { background:rgba(239,68,68,0.1); color:#ef4444; border-color:rgba(239,68,68,0.2); }
         .mobile-topbar { display:none; position:fixed; top:0; left:0; right:0; z-index:100; background:#08112b; padding:14px 20px; align-items:center; justify-content:space-between; border-bottom:1px solid rgba(37,99,235,0.15); }
         .hamburger { background:none; border:none; color:#94a3b8; font-size:1.3rem; cursor:pointer; padding:4px; }
         .mobile-logo { font-size:1.05rem; font-weight:800; color:#fff; }
@@ -169,6 +136,7 @@ export default function Dashboard() {
         .topbar { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:28px; gap:12px; }
         .page-title { font-size:1.6rem; font-weight:800; color:#08112b; letter-spacing:-0.6px; line-height:1.2; }
         .page-sub { font-size:0.82rem; color:#94a3b8; margin-top:3px; }
+        .client-tag { display:inline-block; background:#eff6ff; color:#2563eb; border:1px solid #bfdbfe; border-radius:6px; font-size:0.72rem; font-weight:700; padding:3px 10px; margin-top:6px; }
         .topbar-right { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
         .user-chip { font-size:0.75rem; color:#64748b; background:#fff; padding:7px 12px; border-radius:20px; border:1px solid #e2e8f0; max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
         .live-badge { display:flex; align-items:center; gap:7px; flex-shrink:0; background:linear-gradient(135deg,#2563eb,#06b6d4); color:#fff; font-size:0.72rem; font-weight:700; padding:8px 15px; border-radius:20px; letter-spacing:0.5px; box-shadow:0 4px 14px rgba(37,99,235,0.3); white-space:nowrap; }
@@ -176,7 +144,7 @@ export default function Dashboard() {
         @keyframes bk { 0%,100%{opacity:1} 50%{opacity:0.2} }
         .client-selector-wrap { margin-bottom:20px; display:flex; align-items:center; gap:12px; background:#fff; border-radius:12px; padding:14px 20px; border:1px solid #e2e8f5; box-shadow:0 1px 4px rgba(8,17,43,0.05); }
         .client-selector-label { font-size:0.78rem; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:1px; white-space:nowrap; }
-        .client-selector { flex:1; padding:8px 14px; border-radius:8px; border:1.5px solid #e2e8f0; font-size:0.875rem; font-family:'Plus Jakarta Sans',sans-serif; color:#08112b; font-weight:600; background:#f8fafc; cursor:pointer; outline:none; transition:border-color 0.2s; }
+        .client-selector { flex:1; padding:8px 14px; border-radius:8px; border:1.5px solid #e2e8f0; font-size:0.875rem; font-family:'Plus Jakarta Sans',sans-serif; color:#08112b; font-weight:600; background:#f8fafc; cursor:pointer; outline:none; }
         .client-selector:focus { border-color:#2563eb; }
         .client-badge { display:inline-flex; align-items:center; gap:6px; background:#eff6ff; color:#2563eb; border:1px solid #bfdbfe; border-radius:20px; font-size:0.72rem; font-weight:700; padding:4px 12px; }
         .stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px; }
@@ -243,9 +211,9 @@ export default function Dashboard() {
         .empty-icon { width:56px; height:56px; border-radius:14px; background:linear-gradient(135deg,#eff6ff,#e0f2fe); display:flex; align-items:center; justify-content:center; font-size:1.6rem; margin:0 auto 14px; }
         .empty-title { font-size:1.05rem; font-weight:800; color:#08112b; margin-bottom:5px; }
         .empty-sub { font-size:0.84rem; color:#94a3b8; }
+        .overlay { display:none; position:fixed; inset:0; background:rgba(8,17,43,0.5); z-index:150; backdrop-filter:blur(2px); }
+        .overlay.show { display:block; }
         @media (max-width:900px) {
-          .sidebar { transform:translateX(-100%); }
-          .sidebar.mobile-open { transform:translateX(0); }
           .mobile-topbar { display:flex; }
           .main { margin-left:0; padding:80px 16px 24px; }
           .stats-grid { grid-template-columns:repeat(2,1fr); gap:12px; }
@@ -264,8 +232,6 @@ export default function Dashboard() {
           .stat-value { font-size:1.45rem; }
           .main { padding:76px 12px 20px; }
         }
-        .overlay { display:none; position:fixed; inset:0; background:rgba(8,17,43,0.5); z-index:150; backdrop-filter:blur(2px); }
-        .overlay.show { display:block; }
       `}</style>
 
       <div className={`overlay ${mobileNav ? 'show' : ''}`} onClick={() => setMobileNav(false)} />
@@ -277,40 +243,7 @@ export default function Dashboard() {
       </div>
 
       <div className="layout">
-        <div className={`sidebar ${mobileNav ? 'mobile-open' : ''}`}>
-          <div className="sidebar-top">
-            <div className="logo-row">
-              <div className="logo-atom">⚛</div>
-              <div className="logo-text">Karna<span>Connect</span></div>
-            </div>
-            <div className="logo-sub">{isAdmin ? 'Enterprise Admin' : 'AI Command Centre'}</div>
-          </div>
-          <div className="live-pill">
-            <div className="live-dot" />
-            <div className="live-label">Mash is live</div>
-            <div className="live-clock">
-              {time.toLocaleTimeString('en-AU', { timeZone: PERTH, hour:'2-digit', minute:'2-digit', second:'2-digit' })}
-            </div>
-          </div>
-         <nav className="nav-wrap">
-  <div className="nav-group-label">Main</div>
-  <div className="nav-item active" onClick={() => window.location.href = '/'}><span className="nav-icon">📞</span>Call Dashboard</div>
-  <div className="nav-item"><span className="nav-icon">👥</span>Clients</div>
-  <div className="nav-item"><span className="nav-icon">🤖</span>Agents</div>
-  <div className="nav-group-label">Insights</div>
-  <div className="nav-item" onClick={() => window.location.href = '/analytics'}><span className="nav-icon">📊</span>Analytics</div>
-  <div className="nav-item" onClick={() => window.location.href = '/usage'}><span className="nav-icon">💳</span>Usage & Billing</div>
-  <div className="nav-item"><span className="nav-icon">📋</span>Transcripts</div>
-  <div className="nav-group-label">System</div>
-  <div className="nav-item"><span className="nav-icon">🔗</span>CRM Connect</div>
-  <div className="nav-item"><span className="nav-icon">⚙️</span>Settings</div>
-  </nav>
-            <div className="sidebar-foot">
-            <div>South Lake WA 6164</div>
-            <div style={{color:'#152550', marginTop:'2px'}}>© 2026 KarnaConnect</div>
-            <button className="logout-btn" onClick={handleLogout}>🚪 Sign Out</button>
-          </div>
-        </div>
+        <Sidebar isAdmin={isAdmin} activePage="dashboard" mobileOpen={mobileNav} onClose={() => setMobileNav(false)} />
 
         <main className="main">
           <div className="topbar">
@@ -319,6 +252,7 @@ export default function Dashboard() {
               <div className="page-sub">
                 {new Date().toLocaleDateString('en-AU', { timeZone: PERTH, weekday:'long', year:'numeric', month:'long', day:'numeric' })}
               </div>
+              <div className="client-tag">📋 {clientName}</div>
             </div>
             <div className="topbar-right">
               {isAdmin && <div className="client-badge">⚡ Enterprise Admin</div>}
@@ -327,19 +261,12 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* ADMIN CLIENT SELECTOR */}
           {isAdmin && (
             <div className="client-selector-wrap">
               <div className="client-selector-label">📋 Viewing:</div>
-              <select
-                className="client-selector"
-                value={selectedClient}
-                onChange={e => handleClientChange(e.target.value)}
-              >
+              <select className="client-selector" value={selectedClient} onChange={e => handleClientChange(e.target.value)}>
                 <option value="all">All Clients (Combined)</option>
-                {clients.map(c => (
-                  <option key={c.id} value={c.id}>{c.business_name}</option>
-                ))}
+                {clients.map(c => <option key={c.id} value={c.id}>{c.business_name}</option>)}
               </select>
             </div>
           )}
@@ -389,9 +316,7 @@ export default function Dashboard() {
                           <tr key={call.id}>
                             <td className="date-col">{perthDate(call.created_at)}</td>
                             <td className="caller-col"><span className="caller-num">{call.caller_number || 'Unknown'}</span></td>
-                            {isAdmin && selectedClient === 'all' && (
-                              <td className="client-col">{callClientName}</td>
-                            )}
+                            {isAdmin && selectedClient === 'all' && <td className="client-col">{callClientName}</td>}
                             <td className="outcome-col">
                               <span className="outcome-badge" style={{
                                 background: outcomeColor(call.call_outcome) + '15',
@@ -438,9 +363,7 @@ export default function Dashboard() {
                                           const isUser = line.startsWith('User:')
                                           return line.trim() ? (
                                             <div key={i} className={`transcript-line ${isAI ? 'ai' : isUser ? 'user' : ''}`}>
-                                              {(isAI || isUser) && (
-                                                <span className="transcript-speaker">{isAI ? '⚛ Mash' : '👤 Caller'}</span>
-                                              )}
+                                              {(isAI || isUser) && <span className="transcript-speaker">{isAI ? '⚛ Mash' : '👤 Caller'}</span>}
                                               {line.replace('AI: ', '').replace('User: ', '')}
                                             </div>
                                           ) : null
