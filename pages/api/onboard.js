@@ -35,7 +35,7 @@ export default async function handler(req, res) {
     if (clientError) throw new Error(clientError.message)
 
     // 3. Hand off to Railway backend (fire and forget)
-    fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/create-agent`, {
+    fetch(`${process.env.BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL}/create-agent`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
