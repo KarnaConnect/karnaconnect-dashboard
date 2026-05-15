@@ -1,0 +1,39 @@
+import Stripe from 'stripe'
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
+
+const priceIds = {
+  'Basic': process.env.STRIPE_BASIC_PRICE_ID,
+  'Standard': process.env.STRIPE_STANDARD_PRICE_ID,
+  'Premium': process.env.STRIPE_PREMIUM_PRICE_ID
+}
+
+export default async function handler(req, res) {
+  if (req.method !== 'POST') return res.status(405).end()
+
+  const { plan_name, client_id, business_name, contact_email } = req.body
+
+  try {
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      mode: 'subscription',
+      customer_email: contact_email,
+      line_items: [{
+        price: priceIds[plan_name],
+        quantity: 1
+      }],
+      metadata: {
+        client_id,
+        business_name,
+        plan_name
+      },
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/onboarding?success=true&client_id=${client_id}`,
+      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/onboarding?cancelled=true`,
+    })
+
+    res.status(200).json({ url: session.url })
+  } catch (err) {
+    console.error('Stripe error:', err.message)
+    res.status(500).json({ error: err.message })
+  }
+}
