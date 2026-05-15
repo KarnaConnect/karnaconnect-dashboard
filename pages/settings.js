@@ -171,23 +171,23 @@ export default function Settings() {
         html, body { height:100%; }
         body { font-family:'Plus Jakarta Sans',sans-serif; background:#eef2f9; -webkit-font-smoothing:antialiased; }
         .layout { display:flex; min-height:100vh; }
-        .mobile-topbar { display:none; position:fixed; top:0; left:0; right:0; z-index:100; background:#08112b; padding:14px 20px; align-items:center; justify-content:space-between; border-bottom:1px solid rgba(37,99,235,0.15); }
+        .mobile-topbar { display:none; position:fixed; top:0; left:0; right:0; z-index:100; background:#1a1535; padding:14px 20px; align-items:center; justify-content:space-between; border-bottom:1px solid rgba(37,99,235,0.15); }
         .hamburger { background:none; border:none; color:#94a3b8; font-size:1.3rem; cursor:pointer; padding:4px; }
         .mobile-logo { font-size:1.05rem; font-weight:800; color:#fff; }
         .mobile-logo span { color:#06b6d4; }
         .main { margin-left:240px; flex:1; padding:36px 32px; min-height:100vh; }
         .topbar { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:28px; gap:12px; }
-        .page-title { font-size:1.6rem; font-weight:800; color:#08112b; letter-spacing:-0.6px; }
+        .page-title { font-size:1.6rem; font-weight:800; color:#1a1535; letter-spacing:-0.6px; }
         .page-sub { font-size:0.82rem; color:#94a3b8; margin-top:3px; }
         .tabs { display:flex; gap:4px; background:#fff; border-radius:12px; padding:6px; border:1px solid #e2e8f5; box-shadow:0 1px 4px rgba(8,17,43,0.05); margin-bottom:24px; width:fit-content; }
         .tab { padding:8px 18px; border-radius:8px; font-size:0.83rem; font-weight:600; cursor:pointer; color:#64748b; transition:all 0.15s; white-space:nowrap; }
         .tab.active { background:linear-gradient(135deg,#2563eb,#06b6d4); color:#fff; box-shadow:0 2px 8px rgba(37,99,235,0.3); }
-        .tab:hover:not(.active) { background:#f1f5f9; color:#08112b; }
+        .tab:hover:not(.active) { background:#f1f5f9; color:#1a1535; }
         .card { background:#fff; border-radius:14px; border:1px solid #e2e8f5; box-shadow:0 1px 4px rgba(8,17,43,0.05); padding:28px; margin-bottom:20px; }
-        .card-title { font-size:1rem; font-weight:700; color:#08112b; margin-bottom:6px; }
+        .card-title { font-size:1rem; font-weight:700; color:#1a1535; margin-bottom:6px; }
         .card-sub { font-size:0.82rem; color:#94a3b8; margin-bottom:24px; }
         .field-label { font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#64748b; margin-bottom:6px; display:block; }
-        .field { width:100%; padding:11px 14px; border-radius:8px; border:1.5px solid #e2e8f0; font-size:0.875rem; font-family:'Plus Jakarta Sans',sans-serif; color:#08112b; outline:none; margin-bottom:16px; transition:border-color 0.2s; background:#fff; }
+        .field { width:100%; padding:11px 14px; border-radius:8px; border:1.5px solid #e2e8f0; font-size:0.875rem; font-family:'Plus Jakarta Sans',sans-serif; color:#1a1535; outline:none; margin-bottom:16px; transition:border-color 0.2s; background:#fff; }
         .field:focus { border-color:#2563eb; }
         .field:disabled { background:#f8fafc; color:#94a3b8; }
         .btn-primary { padding:11px 24px; background:linear-gradient(135deg,#2563eb,#06b6d4); color:#fff; font-size:0.875rem; font-weight:700; border:none; border-radius:8px; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; box-shadow:0 2px 8px rgba(37,99,235,0.25); transition:opacity 0.2s; }
@@ -337,7 +337,7 @@ export default function Settings() {
                 {clients.map(c => (
                   <div key={c.id} className="client-row">
                     <div>
-                      <div style={{fontWeight:'700', color:'#08112b', fontSize:'0.875rem'}}>{c.business_name}</div>
+                      <div style={{fontWeight:'700', color:'#1a1535', fontSize:'0.875rem'}}>{c.business_name}</div>
                       <div style={{fontSize:'0.75rem', color:'#94a3b8', marginTop:'2px'}}>{c.contact_email}</div>
                     </div>
                     <div style={{textAlign:'right'}}>
