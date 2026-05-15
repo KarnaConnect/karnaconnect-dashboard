@@ -111,13 +111,13 @@ export default function Analytics() {
         html, body { height:100%; }
         body { font-family:'Plus Jakarta Sans',sans-serif; background:#eef2f9; -webkit-font-smoothing:antialiased; }
         .layout { display:flex; min-height:100vh; }
-        .mobile-topbar { display:none; position:fixed; top:0; left:0; right:0; z-index:100; background:#08112b; padding:14px 20px; align-items:center; justify-content:space-between; border-bottom:1px solid rgba(37,99,235,0.15); }
+        .mobile-topbar { display:none; position:fixed; top:0; left:0; right:0; z-index:100; background:#1a1535; padding:14px 20px; align-items:center; justify-content:space-between; border-bottom:1px solid rgba(37,99,235,0.15); }
         .hamburger { background:none; border:none; color:#94a3b8; font-size:1.3rem; cursor:pointer; padding:4px; }
         .mobile-logo { font-size:1.05rem; font-weight:800; color:#fff; }
         .mobile-logo span { color:#06b6d4; }
         .main { margin-left:240px; flex:1; padding:36px 32px; min-height:100vh; }
         .topbar { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:28px; gap:12px; }
-        .page-title { font-size:1.6rem; font-weight:800; color:#08112b; letter-spacing:-0.6px; }
+        .page-title { font-size:1.6rem; font-weight:800; color:#1a1535; letter-spacing:-0.6px; }
         .page-sub { font-size:0.82rem; color:#94a3b8; margin-top:3px; }
         .topbar-right { display:flex; align-items:center; gap:10px; }
         .live-badge { display:flex; align-items:center; gap:7px; background:linear-gradient(135deg,#2563eb,#06b6d4); color:#fff; font-size:0.72rem; font-weight:700; padding:8px 15px; border-radius:20px; box-shadow:0 4px 14px rgba(37,99,235,0.3); white-space:nowrap; }
@@ -125,7 +125,7 @@ export default function Analytics() {
         @keyframes bk { 0%,100%{opacity:1} 50%{opacity:0.2} }
         .client-selector-wrap { margin-bottom:20px; display:flex; align-items:center; gap:12px; background:#fff; border-radius:12px; padding:14px 20px; border:1px solid #e2e8f5; box-shadow:0 1px 4px rgba(8,17,43,0.05); }
         .client-selector-label { font-size:0.78rem; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:1px; white-space:nowrap; }
-        .client-selector { flex:1; padding:8px 14px; border-radius:8px; border:1.5px solid #e2e8f0; font-size:0.875rem; font-family:'Plus Jakarta Sans',sans-serif; color:#08112b; font-weight:600; background:#f8fafc; cursor:pointer; outline:none; }
+        .client-selector { flex:1; padding:8px 14px; border-radius:8px; border:1.5px solid #e2e8f0; font-size:0.875rem; font-family:'Plus Jakarta Sans',sans-serif; color:#1a1535; font-weight:600; background:#f8fafc; cursor:pointer; outline:none; }
         .client-selector:focus { border-color:#2563eb; }
         .insight-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px; }
         .insight-card { background:#fff; border-radius:14px; padding:20px 18px; border:1px solid #e2e8f5; box-shadow:0 1px 4px rgba(8,17,43,0.05); position:relative; overflow:hidden; }
@@ -135,12 +135,12 @@ export default function Analytics() {
         .i3::after { background:linear-gradient(90deg,#f59e0b,#fbbf24); }
         .i4::after { background:linear-gradient(90deg,#8b5cf6,#2563eb); }
         .insight-label { font-size:0.68rem; text-transform:uppercase; letter-spacing:1.2px; color:#94a3b8; font-weight:700; margin-bottom:6px; }
-        .insight-value { font-size:1.6rem; font-weight:800; color:#08112b; line-height:1; letter-spacing:-0.5px; }
+        .insight-value { font-size:1.6rem; font-weight:800; color:#1a1535; line-height:1; letter-spacing:-0.5px; }
         .insight-sub { font-size:0.72rem; color:#94a3b8; margin-top:5px; }
         .charts-grid { display:grid; grid-template-columns:2fr 1fr; gap:20px; margin-bottom:20px; }
         .chart-card { background:#fff; border-radius:14px; border:1px solid #e2e8f5; box-shadow:0 1px 4px rgba(8,17,43,0.05); overflow:hidden; }
         .chart-hdr { padding:16px 20px; border-bottom:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center; }
-        .chart-title { font-size:0.9rem; font-weight:700; color:#08112b; }
+        .chart-title { font-size:0.9rem; font-weight:700; color:#1a1535; }
         .chart-sub { font-size:0.75rem; color:#94a3b8; }
         .chart-body { padding:20px; }
         .bar-chart { display:flex; align-items:flex-end; gap:3px; height:140px; }
@@ -154,7 +154,7 @@ export default function Analytics() {
         .legend-item:last-child { border-bottom:none; }
         .legend-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; margin-right:8px; }
         .legend-name { flex:1; color:#475569; font-weight:500; display:flex; align-items:center; }
-        .legend-val { font-weight:700; color:#08112b; }
+        .legend-val { font-weight:700; color:#1a1535; }
         .hour-chart { display:flex; align-items:flex-end; gap:2px; height:100px; }
         .hour-bar-wrap { flex:1; display:flex; flex-direction:column; align-items:center; gap:2px; height:100%; justify-content:flex-end; }
         .hour-bar { width:100%; border-radius:3px 3px 0 0; background:linear-gradient(180deg,#8b5cf6,#2563eb); opacity:0.7; min-height:2px; }
@@ -274,7 +274,7 @@ export default function Analytics() {
                         return el
                       })
                     })()}
-                    <text x="60" y="56" textAnchor="middle" fontSize="14" fontWeight="800" fill="#08112b">{calls.length}</text>
+                    <text x="60" y="56" textAnchor="middle" fontSize="14" fontWeight="800" fill="#1a1535">{calls.length}</text>
                     <text x="60" y="70" textAnchor="middle" fontSize="8" fill="#94a3b8">calls</text>
                   </svg>
                   <div className="donut-legend">
