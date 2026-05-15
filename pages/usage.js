@@ -96,7 +96,7 @@ export default function Usage() {
 
     return (
       <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid #e2e8f5', boxShadow: '0 1px 4px rgba(8,17,43,0.05)', overflow: 'hidden', marginBottom: '20px' }}>
-        <div style={{ background: 'linear-gradient(135deg, #08112b, #0d1a3a)', padding: '24px 28px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div style={{ background: 'linear-gradient(135deg, #1a1535, #0d1a3a)', padding: '24px 28px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
             <div style={{ fontSize: '0.7rem', color: '#3d5a8a', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: '700', marginBottom: '6px' }}>Current Plan</div>
             <div style={{ fontSize: '1.8rem', fontWeight: '800', color: '#fff', letterSpacing: '-0.5px' }}>{data.plans?.name || 'Basic'}</div>
@@ -114,7 +114,7 @@ export default function Usage() {
         <div style={{ padding: '24px 28px', borderBottom: '1px solid #f1f5f9' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
             <div style={{ fontSize: '0.78rem', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: '1px' }}>Minutes Used This Month</div>
-            <div style={{ fontSize: '0.85rem', fontWeight: '800', color: '#08112b' }}>{used} / {total} min</div>
+            <div style={{ fontSize: '0.85rem', fontWeight: '800', color: '#1a1535' }}>{used} / {total} min</div>
           </div>
           <div style={{ background: '#f1f5f9', borderRadius: '999px', height: '10px', overflow: 'hidden' }}>
             <div style={{ height: '100%', borderRadius: '999px', width: `${pct}%`, background: barColor, transition: 'width 0.5s ease' }} />
@@ -136,7 +136,7 @@ export default function Usage() {
             <div key={i} style={{ padding: '20px', borderRight: i < 2 ? '1px solid #f1f5f9' : 'none', textAlign: 'center' }}>
               <div style={{ fontSize: '1.2rem', marginBottom: '6px' }}>{s.icon}</div>
               <div style={{ fontSize: '0.68rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '700', marginBottom: '4px' }}>{s.label}</div>
-              <div style={{ fontSize: '0.95rem', fontWeight: '800', color: '#08112b' }}>{s.value}</div>
+              <div style={{ fontSize: '0.95rem', fontWeight: '800', color: '#1a1535' }}>{s.value}</div>
             </div>
           ))}
         </div>
@@ -183,17 +183,17 @@ export default function Usage() {
         html, body { height:100%; }
         body { font-family:'Plus Jakarta Sans',sans-serif; background:#eef2f9; -webkit-font-smoothing:antialiased; }
         .layout { display:flex; min-height:100vh; }
-        .mobile-topbar { display:none; position:fixed; top:0; left:0; right:0; z-index:100; background:#08112b; padding:14px 20px; align-items:center; justify-content:space-between; border-bottom:1px solid rgba(37,99,235,0.15); }
+        .mobile-topbar { display:none; position:fixed; top:0; left:0; right:0; z-index:100; background:#1a1535; padding:14px 20px; align-items:center; justify-content:space-between; border-bottom:1px solid rgba(37,99,235,0.15); }
         .hamburger { background:none; border:none; color:#94a3b8; font-size:1.3rem; cursor:pointer; padding:4px; }
         .mobile-logo { font-size:1.05rem; font-weight:800; color:#fff; }
         .mobile-logo span { color:#06b6d4; }
         .main { margin-left:240px; flex:1; padding:36px 32px; min-height:100vh; }
         .topbar { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:28px; gap:12px; }
-        .page-title { font-size:1.6rem; font-weight:800; color:#08112b; letter-spacing:-0.6px; }
+        .page-title { font-size:1.6rem; font-weight:800; color:#1a1535; letter-spacing:-0.6px; }
         .page-sub { font-size:0.82rem; color:#94a3b8; margin-top:3px; }
         .client-selector-wrap { margin-bottom:20px; display:flex; align-items:center; gap:12px; background:#fff; border-radius:12px; padding:14px 20px; border:1px solid #e2e8f5; box-shadow:0 1px 4px rgba(8,17,43,0.05); }
         .client-selector-label { font-size:0.78rem; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:1px; white-space:nowrap; }
-        .client-selector { flex:1; padding:8px 14px; border-radius:8px; border:1.5px solid #e2e8f0; font-size:0.875rem; font-family:'Plus Jakarta Sans',sans-serif; color:#08112b; font-weight:600; background:#f8fafc; cursor:pointer; outline:none; }
+        .client-selector { flex:1; padding:8px 14px; border-radius:8px; border:1.5px solid #e2e8f0; font-size:0.875rem; font-family:'Plus Jakarta Sans',sans-serif; color:#1a1535; font-weight:600; background:#f8fafc; cursor:pointer; outline:none; }
         .client-selector:focus { border-color:#2563eb; }
         .admin-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:20px; }
         .overlay { display:none; position:fixed; inset:0; background:rgba(8,17,43,0.5); z-index:150; backdrop-filter:blur(2px); }
@@ -243,7 +243,7 @@ export default function Usage() {
                     <div key={c.id} style={{ background: '#fff', borderRadius: '14px', border: '1px solid #e2e8f5', padding: '20px', boxShadow: '0 1px 4px rgba(8,17,43,0.05)', cursor: 'pointer' }} onClick={() => handleClientSelect(c.id)}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
                         <div>
-                          <div style={{ fontWeight: '800', fontSize: '0.95rem', color: '#08112b' }}>{c.business_name}</div>
+                          <div style={{ fontWeight: '800', fontSize: '0.95rem', color: '#1a1535' }}>{c.business_name}</div>
                           <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '2px' }}>{c.plans?.name || 'No plan'} — ${c.plans?.price_per_month || 0}/mo</div>
                         </div>
                         <div style={{ fontSize: '0.72rem', fontWeight: '700', color: '#2563eb', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '6px', padding: '3px 8px' }}>View →</div>
