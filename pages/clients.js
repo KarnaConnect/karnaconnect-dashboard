@@ -266,11 +266,17 @@ export default function Clients() {
                         <td style={{fontSize:'0.78rem', color:'#64748b', whiteSpace:'nowrap'}}>
                           {client.created_at ? new Date(client.created_at).toLocaleDateString('en-AU', { timeZone: PERTH }) : '—'}
                         </td>
-                        <td>
-                          <span className="action-btn" title="View Dashboard" onClick={() => window.location.href = '/?client=' + client.id}>📊</span>
-                          <span className="action-btn" title="Usage & Billing" onClick={() => window.location.href = '/usage'}>💳</span>
-                          <span className="action-btn" title="View in VAPI" onClick={() => window.open('https://dashboard.vapi.ai', '_blank')}>🤖</span>
-                        </td>
+                       <td>
+  <span className="action-btn" title="View Dashboard" onClick={() => window.location.href = '/?client=' + client.id}>📊</span>
+  <span className="action-btn" title="Usage & Billing" onClick={() => window.location.href = '/usage'}>💳</span>
+  <span className="action-btn" title="View in VAPI" onClick={() => window.open('https://dashboard.vapi.ai', '_blank')}>🤖</span>
+  <span 
+    className="action-btn" 
+    title={client.active ? 'Deactivate Client' : 'Activate Client'}
+    onClick={() => toggleClientStatus(client.id, client.active)}
+    style={{color: client.active ? '#ef4444' : '#10b981'}}
+  >{client.active ? '🔴' : '🟢'}</span>
+</td>
                       </tr>
                     )
                   })}
