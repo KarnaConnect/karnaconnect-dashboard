@@ -64,7 +64,23 @@ export default function Clients() {
     if (!plan) return 0
     return Math.min((client.monthly_minutes_used || 0) / plan.minutes_per_month * 100, 100)
   }
+async function toggleClientStatus(clientId, currentStatus) {
+    const action = currentStatus ? 'deactivate' : 'activate'
+    if (!confirm(`Are you sure you want to ${action} this client?`)) return
 
+    const { error } = await supabase
+      .from('clients')
+      .update({ active: !currentStatus })
+      .eq('id', clientId)
+
+    if (error) {
+      alert('Error updating client status: ' + error.message)
+    } else {
+      setClients(prev => prev.map(c => 
+        c.id === clientId ? { ...c, active: !currentStatus } : c
+      ))
+    }
+  }
   if (authLoading) return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#eef2f9', fontFamily: 'Plus Jakarta Sans, sans-serif', fontSize: '0.9rem', color: '#94a3b8' }}>
       Loading...
