@@ -102,7 +102,7 @@ export default function Login() {
           <MashLogo size={44} />
           <div className="logo-text">M<span>ash</span></div>
         </div>
-        <div className="subtitle">AI Receptionist · by KarnaConnect</div>
+        <div className="subtitle">AI Business · by KarnaConnect</div>
 
         <label className="field-label">Email</label>
         <input
