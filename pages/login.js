@@ -131,7 +131,7 @@ export default function Login() {
         </button>
 
         <div className="footer-text">
-          <span>Mash</span> · Powered by KarnaConnect · South Lake WA
+          <span>Mash</span> · Powered by KarnaConnect · AU
         </div>
       </div>
     </>
