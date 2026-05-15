@@ -245,3 +245,26 @@ export default function Sidebar({ isAdmin, activePage, mobileOpen, onClose }) {
                     value={crmForm.notes}
                     onChange={e => setCrmForm({...crmForm, notes: e.target.value})}
                     style={{resize:'none'}}
+                  />
+                </>
+              )}
+            </div>
+            {!crmSent && (
+              <div className="modal-footer">
+                <button className="btn-secondary" onClick={() => setShowCRM(false)}>Cancel</button>
+                <button className="btn-primary" onClick={handleCRMSubmit} disabled={crmSubmitting || !crmForm.crm}>
+                  {crmSubmitting ? 'Sending...' : 'Submit Request →'}
+                </button>
+              </div>
+            )}
+            {crmSent && (
+              <div className="modal-footer">
+                <button className="btn-primary" onClick={() => { setShowCRM(false); setCrmSent(false) }}>Close</button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
