@@ -4,6 +4,13 @@ export default function Onboarding() {
   const [step, setStep] = useState(1)
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      if (params.get('success') === 'true') setSubmitted(true)
+    }
+  }, [])
   const [error, setError] = useState('')
 
   const [form, setForm] = useState({
