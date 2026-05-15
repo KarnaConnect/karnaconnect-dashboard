@@ -180,7 +180,7 @@ export default function Analytics() {
 
       <div className="mobile-topbar">
         <button className="hamburger" onClick={() => setMobileNav(!mobileNav)}>☰</button>
-        <div className="mobile-logo">Karna<span>Connect</span></div>
+        <div className="mobile-logo">M<span>ash</span></div>
         <div style={{width:'32px'}} />
       </div>
 
