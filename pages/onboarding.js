@@ -23,21 +23,41 @@ export default function Onboarding() {
     setSubmitting(true)
     setError('')
     try {
+      // Step 1 — Create client and VAPI agent
       const res = await fetch('/api/onboard', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form)
       })
       const data = await res.json()
-      if (data.success) {
-        setSubmitted(true)
-      } else {
+      if (!data.success) {
         setError(data.error || 'Something went wrong. Please try again.')
+        setSubmitting(false)
+        return
+      }
+
+      // Step 2 — Redirect to Stripe checkout
+      const checkoutRes = await fetch('/api/create-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          plan_name: form.plan_name,
+          client_id: data.client_id,
+          business_name: form.business_name,
+          contact_email: form.contact_email
+        })
+      })
+      const checkoutData = await checkoutRes.json()
+      if (checkoutData.url) {
+        window.location.href = checkoutData.url
+      } else {
+        setError(checkoutData.error || 'Payment setup failed. Please try again.')
+        setSubmitting(false)
       }
     } catch (err) {
-      setError('Network error. Please try again.')
+      setError(`Error: ${err.message}`)
+      setSubmitting(false)
     }
-    setSubmitting(false)
   }
 
   const totalSteps = 5
