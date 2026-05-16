@@ -26,15 +26,16 @@ export default function Onboarding() {
     setForm(prev => ({ ...prev, [field]: value }))
   }
 
+  const isTrial = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('trial') === 'true'
+
   async function handleSubmit() {
     setSubmitting(true)
     setError('')
     try {
-      // Step 1 — Create client and VAPI agent
       const res = await fetch('/api/onboard', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form)
+        body: JSON.stringify({ ...form, is_trial: isTrial })
       })
       const data = await res.json()
       if (!data.success) {
@@ -43,7 +44,13 @@ export default function Onboarding() {
         return
       }
 
-      // Step 2 — Redirect to Stripe checkout
+      if (isTrial) {
+        // Skip Stripe — go straight to success
+        setSubmitted(true)
+        return
+      }
+
+      // Redirect to Stripe checkout
       const checkoutRes = await fetch('/api/create-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -341,9 +348,14 @@ export default function Onboarding() {
 
                   <div className="btn-row">
                     <button className="btn-back" onClick={() => setStep(4)}>← Back</button>
-                    <button className="btn-primary" onClick={handleSubmit} disabled={submitting}>
-                      {submitting ? 'Submitting...' : 'Submit Application →'}
-                    </button>
+                    {isTrial && (
+  <div style={{ background: '#EEEDFE', border: '1px solid #CECBF6', borderRadius: '10px', padding: '14px 16px', marginBottom: '16px', fontSize: '0.84rem', color: '#534AB7', fontWeight: '600', textAlign: 'center' }}>
+    🎯 You have been offered a 7-day free trial — no payment required today
+  </div>
+)}
+<button className="btn-primary" onClick={handleSubmit} disabled={submitting}>
+  {submitting ? 'Submitting...' : isTrial ? 'Start Free Trial →' : 'Submit Application →'}
+</button>
                   </div>
                 </>
               )}
