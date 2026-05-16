@@ -183,6 +183,10 @@ async function toggleClientStatus(clientId, currentStatus) {
         .empty-sub { font-size:0.84rem; color:#94a3b8; }
         .overlay { display:none; position:fixed; inset:0; background:rgba(8,17,43,0.5); z-index:150; backdrop-filter:blur(2px); }
         .overlay.show { display:block; }
+        .mobile-client-cards { display:none; }
+.client-mobile-card { background:#fff; border-radius:12px; border:1px solid #e2e8f5; padding:16px; margin-bottom:12px; box-shadow:0 1px 4px rgba(26,21,53,0.05); }
+.client-mobile-card-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px; }
+.client-mobile-actions { display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; }
         @media (max-width:900px) {
   .mobile-topbar { display:flex; }
   .main { margin-left:0; padding:80px 16px 24px; }
@@ -336,6 +340,45 @@ async function toggleClientStatus(clientId, currentStatus) {
                   })}
                 </tbody>
               </table>
+<div className="mobile-client-cards">
+  {filtered.map(client => {
+    const pct = getUsagePct(client)
+    const barColor = pct > 90 ? '#ef4444' : pct > 70 ? '#f59e0b' : '#534AB7'
+    const planName = getPlanName(client.plan_id)
+    return (
+      <div key={client.id} className="client-mobile-card">
+        <div className="client-mobile-card-top">
+          <div>
+            <div className="client-name">{client.business_name}</div>
+            <div className="client-email">{client.contact_email}</div>
+            <div style={{marginTop:'4px'}}>
+              <span className={`plan-badge plan-${planName.replace(' ','') || 'none'}`}>
+                {planName}
+              </span>
+            </div>
+          </div>
+          <div>
+            <span className={`status-dot status-${client.active ? 'active' : 'inactive'}`} />
+            <span style={{fontSize:'0.78rem', color:'#64748b'}}>{client.active ? 'Active' : 'Inactive'}</span>
+          </div>
+        </div>
+        <div className="usage-wrap">
+          <div className="usage-text">{Math.round(client.monthly_minutes_used || 0)} min used</div>
+          <div className="usage-bar">
+            <div className="usage-fill" style={{ width: pct + '%', background: barColor }} />
+          </div>
+        </div>
+        <div className="client-mobile-actions">
+          <span className="action-btn" title="View Dashboard" onClick={() => window.location.href = '/?client=' + client.id}>📊</span>
+          <span className="action-btn" title="Usage & Billing" onClick={() => window.location.href = '/usage'}>💳</span>
+          <span className="action-btn" title="View in VAPI" onClick={() => window.open('https://dashboard.vapi.ai', '_blank')}>🤖</span>
+          <span className="action-btn" title={client.active ? 'Deactivate' : 'Activate'} onClick={() => toggleClientStatus(client.id, client.active)} style={{color: client.active ? '#ef4444' : '#10b981'}}>{client.active ? '🔴' : '🟢'}</span>
+          <span className="action-btn" title="Assign Trial" onClick={() => assignTrial(client.id)} style={{color:'#534AB7'}}>🎯</span>
+        </div>
+      </div>
+    )
+  })}
+</div>
             )}
           </div>
         </main>
