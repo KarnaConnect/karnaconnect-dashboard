@@ -11,10 +11,10 @@ const priceIds = {
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end()
 
-  const { plan_name, client_id, business_name, contact_email } = req.body
+  const { plan_name, client_id, business_name, contact_email, is_trial } = req.body
 
   try {
-    const session = await stripe.checkout.sessions.create({
+    const sessionConfig = {
       payment_method_types: ['card'],
       mode: 'subscription',
       customer_email: contact_email,
@@ -25,12 +25,26 @@ export default async function handler(req, res) {
       metadata: {
         client_id,
         business_name,
-        plan_name
+        plan_name,
+        is_trial: is_trial ? 'true' : 'false'
       },
       success_url: `${process.env.NEXT_PUBLIC_APP_URL}/onboarding?success=true&client_id=${client_id}`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/onboarding?cancelled=true`,
-    })
+    }
 
+    // Add 7 day trial if trial mode
+    if (is_trial) {
+      sessionConfig.subscription_data = {
+        trial_period_days: 7,
+        metadata: {
+          client_id,
+          business_name,
+          plan_name
+        }
+      }
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionConfig)
     res.status(200).json({ url: session.url })
   } catch (err) {
     console.error('Stripe error:', err.message)
