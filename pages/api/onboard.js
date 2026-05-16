@@ -21,14 +21,28 @@ export default async function handler(req, res) {
       .from('plans').select('id').eq('name', plan_name).single()
 
     // 2. Create client
+    const isTrial = req.body.is_trial === true
+
+    let trialPlanId = null
+    if (isTrial) {
+      const { data: trialPlan } = await supabase
+        .from('plans').select('id').eq('name', 'Trial').single()
+      trialPlanId = trialPlan?.id || null
+    }
+
+    const trialExpiry = new Date()
+    trialExpiry.setDate(trialExpiry.getDate() + 7)
+
     const { data: client, error: clientError } = await supabase
       .from('clients').insert([{
         business_name,
         contact_name,
         contact_email,
         phone_number: contact_phone,
-        plan_id: planData?.id || null,
+        plan_id: isTrial ? trialPlanId : (planData?.id || null),
         active: true,
+        is_trial: isTrial,
+        trial_expires_at: isTrial ? trialExpiry.toISOString().split('T')[0] : null,
         billing_start_date: new Date().toISOString().split('T')[0]
       }]).select().single()
 
