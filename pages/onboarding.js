@@ -173,7 +173,7 @@ export default function Onboarding() {
               <div className="success-icon">🎉</div>
               <div className="success-title">You're all set!</div>
               <div className="success-sub">
-                Thank you {form.contact_name}! We've received your details and are setting up your AI agent for {form.business_name}. The Mash team will be in touch within 24 hours to get you live.
+                Thank you {form.contact_name}! We've received your details and are setting up your AI agent for {form.business_name}. Your 7-day free trial starts now. You won't be charged until day 8. The Mash team will be in touch within 24 hours to get you live.
               </div>
             </div>
           ) : (
