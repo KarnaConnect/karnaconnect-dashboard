@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Purple background -->
+  <rect width="512" height="512" rx="80" fill="#534AB7"/>
+  
+  <!-- Sound wave bars — Mash logo -->
+  <rect x="112" y="196" width="42" height="120" rx="21" fill="#EEEDFE"/>
+  <rect x="170" y="156" width="42" height="200" rx="21" fill="#EEEDFE"/>
+  <rect x="228" y="126" width="42" height="260" rx="21" fill="#ffffff"/>
+  <rect x="286" y="156" width="42" height="200" rx="21" fill="#EEEDFE"/>
+  <rect x="344" y="196" width="42" height="120" rx="21" fill="#EEEDFE"/>
+</svg>
