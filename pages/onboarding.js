@@ -146,9 +146,16 @@ export default function Onboarding() {
       `}</style>
 
       <div className="wrap">
-        <div className="logo-row">
-          <div className="logo-atom">⚛</div>
-          <div className="logo-text">Karna<span>Connect</span></div>
+       <div className="logo-row">
+          <svg width="38" height="38" viewBox="0 0 38 38" style={{flexShrink:0}}>
+            <circle cx="19" cy="19" r="19" fill="#EEEDFE"/>
+            <rect x="8" y="14" width="3" height="10" rx="1.5" fill="#534AB7"/>
+            <rect x="13" y="11" width="3" height="16" rx="1.5" fill="#534AB7"/>
+            <rect x="18" y="8" width="3" height="22" rx="1.5" fill="#7F77DD"/>
+            <rect x="23" y="11" width="3" height="16" rx="1.5" fill="#534AB7"/>
+            <rect x="28" y="14" width="3" height="10" rx="1.5" fill="#534AB7"/>
+          </svg>
+          <div className="logo-text">M<span>ash</span></div>
         </div>
 
         {!submitted && (
