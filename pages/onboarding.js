@@ -25,7 +25,7 @@ export default function Onboarding() {
     setForm(prev => ({ ...prev, [field]: value }))
   }
 
-  const isTrial = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('trial') === 'true'
+  const isTrial = true
 
   async function handleSubmit() {
     setSubmitting(true)
