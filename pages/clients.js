@@ -184,15 +184,16 @@ async function toggleClientStatus(clientId, currentStatus) {
         .overlay { display:none; position:fixed; inset:0; background:rgba(8,17,43,0.5); z-index:150; backdrop-filter:blur(2px); }
         .overlay.show { display:block; }
         @media (max-width:900px) {
-          .mobile-topbar { display:flex; }
-          .main { margin-left:0; padding:80px 16px 24px; }
-          .topbar { flex-direction:column; gap:10px; }
-          .page-title { font-size:1.3rem; }
-          .stats-row { grid-template-columns:repeat(3,1fr); gap:10px; }
-          .search-input { width:100%; }
-          .search-wrap { width:100%; }
-          table { display:none; }
-        }
+  .mobile-topbar { display:flex; }
+  .main { margin-left:0; padding:80px 16px 24px; }
+  .topbar { flex-direction:column; gap:10px; }
+  .page-title { font-size:1.3rem; }
+  .stats-row { grid-template-columns:repeat(3,1fr); gap:10px; }
+  .search-input { width:100%; }
+  .search-wrap { width:100%; }
+  table { display:none; }
+  .mobile-client-cards { display:block; }
+}
       `}</style>
 
       <div className={`overlay ${mobileNav ? 'show' : ''}`} onClick={() => setMobileNav(false)} />
