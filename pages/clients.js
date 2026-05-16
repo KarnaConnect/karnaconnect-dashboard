@@ -323,6 +323,12 @@ async function toggleClientStatus(clientId, currentStatus) {
     onClick={() => toggleClientStatus(client.id, client.active)}
     style={{color: client.active ? '#ef4444' : '#10b981'}}
   >{client.active ? '🔴' : '🟢'}</span>
+    <span 
+  className="action-btn" 
+  title="Assign 7-day Trial"
+  onClick={() => assignTrial(client.id)}
+  style={{color: '#534AB7'}}
+>🎯</span>
 </td>
                       </tr>
                     )
