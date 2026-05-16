@@ -36,6 +36,11 @@ export default async function handler(req, res) {
     if (is_trial) {
       sessionConfig.subscription_data = {
         trial_period_days: 7,
+        trial_settings: {
+          end_behavior: {
+            missing_payment_method: 'cancel'
+          }
+        },
         metadata: {
           client_id,
           business_name,
@@ -43,12 +48,9 @@ export default async function handler(req, res) {
         }
       }
       sessionConfig.payment_method_collection = 'always'
+      sessionConfig.custom_text = {
+        submit: {
+          message: 'Your 7-day free trial starts today. You will not be charged until day 8. Cancel anytime.'
+        }
+      }
     }
-
-    const session = await stripe.checkout.sessions.create(sessionConfig)
-    res.status(200).json({ url: session.url })
-  } catch (err) {
-    console.error('Stripe error:', err.message)
-    res.status(500).json({ error: err.message })
-  }
-}
