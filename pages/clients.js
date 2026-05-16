@@ -179,7 +179,7 @@ async function toggleClientStatus(clientId, currentStatus) {
           <div className="topbar">
             <div>
               <div className="page-title">Clients</div>
-              <div className="page-sub">Manage all KarnaConnect clients</div>
+              <div className="page-sub">Manage all Mash clients</div>
             </div>
             <div className="topbar-right">
               <div className="search-wrap">
