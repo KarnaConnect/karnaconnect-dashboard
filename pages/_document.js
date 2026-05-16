@@ -10,6 +10,13 @@ export default function Document() {
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="Mash" />
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+    <script dangerouslySetInnerHTML={{__html: `
+          if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+              navigator.serviceWorker.register('/sw.js')
+            })
+          }
+        `}} />
       </Head>
       <body>
         <Main />
