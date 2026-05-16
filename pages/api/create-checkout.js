@@ -32,7 +32,6 @@ export default async function handler(req, res) {
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/onboarding?cancelled=true`,
     }
 
-    // Add 7 day trial if trial mode
     if (is_trial) {
       sessionConfig.subscription_data = {
         trial_period_days: 7,
@@ -49,3 +48,11 @@ export default async function handler(req, res) {
       }
       sessionConfig.payment_method_collection = 'always'
     }
+
+    const session = await stripe.checkout.sessions.create(sessionConfig)
+    res.status(200).json({ url: session.url })
+  } catch (err) {
+    console.error('Stripe error:', err.message)
+    res.status(500).json({ error: err.message })
+  }
+}
