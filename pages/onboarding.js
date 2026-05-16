@@ -45,8 +45,25 @@ export default function Onboarding() {
       }
 
       if (isTrial) {
-        // Skip Stripe — go straight to success
-        setSubmitted(true)
+        // Trial still goes through Stripe but with 7-day trial period
+        const checkoutRes = await fetch('/api/create-checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            plan_name: form.plan_name,
+            client_id: data.client_id,
+            business_name: form.business_name,
+            contact_email: form.contact_email,
+            is_trial: true
+          })
+        })
+        const checkoutData = await checkoutRes.json()
+        if (checkoutData.url) {
+          window.location.href = checkoutData.url
+        } else {
+          setError(checkoutData.error || 'Failed to set up trial. Please try again.')
+          setSubmitting(false)
+        }
         return
       }
 
@@ -349,8 +366,8 @@ export default function Onboarding() {
                   <div className="btn-row">
                     <button className="btn-back" onClick={() => setStep(4)}>← Back</button>
                     {isTrial && (
-  <div style={{ background: '#EEEDFE', border: '1px solid #CECBF6', borderRadius: '10px', padding: '14px 16px', marginBottom: '16px', fontSize: '0.84rem', color: '#534AB7', fontWeight: '600', textAlign: 'center' }}>
-    🎯 You have been offered a 7-day free trial — no payment required today
+  <div style={{ background: '#EEEDFE', border: '1px solid #CECBF6', borderRadius: '10px', padding: '14px 16px', marginBottom: '16px', fontSize: '0.84rem', color: '#534AB7', lineHeight: '1.6' }}>
+    🎯 <strong>7-Day Free Trial</strong> — Enter your card details to start your trial. You won't be charged until day 8. Cancel anytime before then.
   </div>
 )}
 <button className="btn-primary" onClick={handleSubmit} disabled={submitting}>
