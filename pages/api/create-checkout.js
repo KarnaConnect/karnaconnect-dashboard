@@ -48,9 +48,4 @@ export default async function handler(req, res) {
         }
       }
       sessionConfig.payment_method_collection = 'always'
-      sessionConfig.custom_text = {
-        submit: {
-          message: 'Your 7-day free trial starts today. You will not be charged until day 8. Cancel anytime.'
-        }
-      }
     }
