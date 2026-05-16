@@ -65,6 +65,37 @@ export default function Clients() {
     return Math.min((client.monthly_minutes_used || 0) / plan.minutes_per_month * 100, 100)
   }
 async function toggleClientStatus(clientId, currentStatus) {
+  async function assignTrial(clientId) {
+    if (!confirm('Assign a 7-day free trial to this client?')) return
+
+    const trialExpiry = new Date()
+    trialExpiry.setDate(trialExpiry.getDate() + 7)
+
+    const { error } = await supabase
+      .from('clients')
+      .update({
+        plan_id: '84d891b4-c10c-4f39-ab8b-60e0821604ac',
+        is_trial: true,
+        trial_expires_at: trialExpiry.toISOString().split('T')[0],
+        active: true
+      })
+      .eq('id', clientId)
+
+    if (error) {
+      alert('Error assigning trial: ' + error.message)
+    } else {
+      setClients(prev => prev.map(c =>
+        c.id === clientId ? {
+          ...c,
+          plan_id: '84d891b4-c10c-4f39-ab8b-60e0821604ac',
+          is_trial: true,
+          trial_expires_at: trialExpiry.toISOString().split('T')[0],
+          active: true
+        } : c
+      ))
+      alert('Trial assigned successfully! Client now has 7 days access.')
+    }
+  }
     const action = currentStatus ? 'deactivate' : 'activate'
     if (!confirm(`Are you sure you want to ${action} this client?`)) return
 
