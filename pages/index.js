@@ -25,10 +25,15 @@ export default function Dashboard() {
   const [clientName, setClientName] = useState('All Clients')
 
   useEffect(() => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!session) { window.location.href = '/login' }
+      else { setUser(session.user); setAuthLoading(false) }
+    })
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) { window.location.href = '/login' }
       else { setUser(session.user); setAuthLoading(false) }
     })
+    return () => authListener.subscription.unsubscribe()
   }, [])
 
   useEffect(() => {
