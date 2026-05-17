@@ -193,10 +193,23 @@ export default function Sidebar({ isAdmin, activePage, mobileOpen, onClose }) {
               <span className="bottom-nav-label">{n.label}</span>
             </div>
           ))}
+        {/* MOBILE BOTTOM NAV */}
+      <div className="bottom-nav">
+        <div className="bottom-nav-items">
+          {visibleNavItems.slice(0, 4).map(n => (
+            <div key={n.page} className={`bottom-nav-item ${activePage === n.page ? 'active' : ''}`}
+              onClick={() => { if (n.action) n.action(); else if (n.href) window.location.href = n.href }}>
+              <span className="bottom-nav-icon">{n.icon}</span>
+              <span className="bottom-nav-label">{n.label}</span>
+            </div>
+          ))}
+          <div className={`bottom-nav-item ${activePage === 'settings' ? 'active' : ''}`}
+            onClick={() => window.location.href = '/settings'}>
+            <span className="bottom-nav-icon">⚙️</span>
+            <span className="bottom-nav-label">Settings</span>
+          </div>
         </div>
       </div>
-
-      {/* CRM MODAL */}
       {showCRM && (
         <div className="modal-overlay" onClick={() => { setShowCRM(false); setCrmSent(false) }}>
           <div className="modal" onClick={e => e.stopPropagation()}>
