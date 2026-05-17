@@ -349,6 +349,17 @@ export default function Settings() {
               </div>
             </>
           )}
+            {/* LOGOUT */}
+          <div className="card" style={{marginTop:'20px', borderColor:'#fecaca'}}>
+            <div className="card-title">Sign Out</div>
+            <div className="card-sub" style={{marginBottom:'16px'}}>Sign out of your Mash account on this device</div>
+            <button 
+              className="btn-danger" 
+              onClick={async () => { await supabase.auth.signOut(); window.location.href = '/login' }}
+            >
+              🚪 Sign Out
+            </button>
+          </div>
         </main>
       </div>
     </>
