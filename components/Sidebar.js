@@ -67,56 +67,50 @@ export default function Sidebar({ isAdmin, activePage, mobileOpen, onClose }) {
   ]
 
   const visibleNavItems = navItems.filter(n => n.show)
+  const bottomNavItems = visibleNavItems.slice(0, 4)
 
   return (
     <>
       <style>{`
-        /* DESKTOP SIDEBAR */
-        .sidebar {
-          width:240px; flex-shrink:0;
-          background:linear-gradient(180deg,#1a1535 0%,#211a42 100%);
-          display:flex; flex-direction:column;
-          position:fixed; top:0; left:0; height:100vh;
-          z-index:200; border-right:1px solid rgba(127,119,221,0.15);
-          transition:transform 0.3s ease;
-        }
+        .sidebar { width:240px; flex-shrink:0; background:linear-gradient(180deg,#1a1535 0%,#211a42 100%); display:flex; flex-direction:column; position:fixed; top:0; left:0; height:100vh; z-index:200; border-right:1px solid rgba(127,119,221,0.15); transition:transform 0.3s ease; }
         @media (max-width:900px) { .sidebar { display:none; } }
         .sidebar-top { padding:24px 20px 18px; border-bottom:1px solid rgba(255,255,255,0.05); }
         .logo-row { display:flex; align-items:center; gap:10px; }
-        .logo-text { font-size:1.2rem; font-weight:800; color:#fff; letter-spacing:-0.3px; }
+        .logo-text { font-size:1.2rem; font-weight:800; color:#fff; letter-spacing:-0.3px; white-space:nowrap; }
         .logo-text span { color:#AFA9EC; }
         .logo-sub { font-size:0.62rem; color:#3C3489; text-transform:uppercase; letter-spacing:2px; margin-top:5px; padding-left:42px; }
         .live-pill { margin:14px 20px 0; background:rgba(83,74,183,0.15); border:1px solid rgba(127,119,221,0.25); border-radius:8px; padding:7px 11px; display:flex; align-items:center; gap:8px; }
-        .live-dot { width:7px; height:7px; border-radius:50%; background:#AFA9EC; flex-shrink:0; box-shadow:0 0 0 0 rgba(175,169,236,0.5); animation:lp 2s infinite; }
+        .live-dot { width:7px; height:7px; border-radius:50%; background:#AFA9EC; flex-shrink:0; animation:lp 2s infinite; }
         @keyframes lp { 0%{box-shadow:0 0 0 0 rgba(175,169,236,0.5)} 70%{box-shadow:0 0 0 7px rgba(175,169,236,0)} 100%{box-shadow:0 0 0 0 rgba(175,169,236,0)} }
-        .live-label { font-size:0.72rem; color:#AFA9EC; font-weight:700; flex:1; }
-        .live-clock { font-family:monospace; font-size:0.68rem; color:#534AB7; }
+        .live-label { font-size:0.72rem; color:#AFA9EC; font-weight:700; flex:1; white-space:nowrap; }
+        .live-clock { font-family:monospace; font-size:0.68rem; color:#534AB7; font-variant-numeric:tabular-nums; white-space:nowrap; }
         .nav-wrap { padding:16px 10px; flex:1; overflow-y:auto; }
-        .nav-item { display:flex; align-items:center; gap:9px; padding:10px 12px; border-radius:10px; margin-bottom:3px; color:#534AB7; font-size:0.83rem; font-weight:500; cursor:pointer; transition:all 0.18s; position:relative; }
+        .nav-item { display:flex; align-items:center; gap:9px; padding:10px 12px; border-radius:9px; margin-bottom:3px; color:#534AB7; font-size:0.83rem; font-weight:500; cursor:pointer; transition:all 0.18s; position:relative; white-space:nowrap; overflow:hidden; }
         .nav-item.active { background:rgba(83,74,183,0.25); color:#CECBF6; border:1px solid rgba(127,119,221,0.3); }
         .nav-item.active::before { content:''; position:absolute; left:0; top:20%; bottom:20%; width:3px; background:linear-gradient(180deg,#7F77DD,#AFA9EC); border-radius:0 3px 3px 0; }
         .nav-item:hover:not(.active) { background:rgba(255,255,255,0.04); color:#AFA9EC; }
-        .nav-icon { font-size:1rem; width:20px; text-align:center; flex-shrink:0; }
-        .sidebar-foot { padding:14px 20px; border-top:1px solid rgba(255,255,255,0.04); font-size:0.68rem; color:#3C3489; }
-        .logout-btn { width:100%; margin-top:8px; padding:9px 12px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:8px; color:#534AB7; font-size:0.78rem; font-weight:600; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; transition:all 0.2s; text-align:left; display:flex; align-items:center; gap:8px; }
+        .nav-icon { font-size:0.95rem; width:17px; text-align:center; flex-shrink:0; }
+        .sidebar-foot { padding:14px 20px; border-top:1px solid rgba(255,255,255,0.04); font-size:0.68rem; color:#3C3489; line-height:1.8; }
+        .logout-btn { width:100%; margin-top:8px; padding:8px 12px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05); border-radius:8px; color:#534AB7; font-size:0.78rem; font-weight:600; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; transition:all 0.2s; text-align:left; display:flex; align-items:center; gap:8px; }
         .logout-btn:hover { background:rgba(239,68,68,0.1); color:#ef4444; border-color:rgba(239,68,68,0.2); }
 
         /* MOBILE TOP BAR */
-        .mobile-topbar { display:none; position:fixed; top:0; left:0; right:0; z-index:100; background:#fff; padding:14px 20px; align-items:center; justify-content:space-between; border-bottom:1px solid #f1f5f9; }
+        .mobile-topbar { display:none; position:fixed; top:0; left:0; right:0; z-index:100; background:#fff; padding:14px 20px; align-items:center; justify-content:space-between; border-bottom:1px solid #f1f5f9; box-shadow:0 1px 3px rgba(0,0,0,0.04); }
         @media (max-width:900px) { .mobile-topbar { display:flex; } }
         .mobile-topbar-logo { display:flex; align-items:center; gap:8px; }
         .mobile-topbar-text { font-size:1.1rem; font-weight:800; color:#1a1535; }
         .mobile-topbar-text span { color:#7F77DD; }
 
         /* MOBILE BOTTOM NAV */
-        .bottom-nav { display:none; position:fixed; bottom:0; left:0; right:0; z-index:100; background:#fff; border-top:1px solid #f1f5f9; padding:8px 0 12px; }
+        .bottom-nav { display:none; position:fixed; bottom:0; left:0; right:0; z-index:100; background:#fff; border-top:1px solid #f1f5f9; padding:6px 0 16px; box-shadow:0 -1px 3px rgba(0,0,0,0.04); }
         @media (max-width:900px) { .bottom-nav { display:flex; } }
         .bottom-nav-items { display:flex; width:100%; }
         .bottom-nav-item { flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; padding:6px 4px; cursor:pointer; transition:all 0.15s; position:relative; }
         .bottom-nav-icon { font-size:1.3rem; line-height:1; }
-        .bottom-nav-label { font-size:0.6rem; font-weight:600; color:#94a3b8; text-align:center; }
+        .bottom-nav-label { font-size:0.58rem; font-weight:600; color:#94a3b8; text-align:center; }
         .bottom-nav-item.active .bottom-nav-label { color:#534AB7; }
-        .bottom-nav-item.active::before { content:''; position:absolute; top:0; left:20%; right:20%; height:2px; background:linear-gradient(90deg,#534AB7,#7F77DD); border-radius:0 0 2px 2px; }
+        .bottom-nav-item.active .bottom-nav-icon { transform:scale(1.1); }
+        .bottom-nav-item.active::before { content:''; position:absolute; top:0; left:25%; right:25%; height:2px; background:linear-gradient(90deg,#534AB7,#7F77DD); border-radius:0 0 2px 2px; }
 
         /* CRM MODAL */
         .modal-overlay { position:fixed; inset:0; background:rgba(26,21,53,0.6); z-index:500; display:flex; align-items:center; justify-content:center; padding:20px; backdrop-filter:blur(4px); }
@@ -178,7 +172,7 @@ export default function Sidebar({ isAdmin, activePage, mobileOpen, onClose }) {
           <div className="mobile-topbar-text">M<span>ash</span></div>
         </div>
         <div style={{display:'flex', alignItems:'center', gap:'8px'}}>
-          <div style={{width:'8px', height:'8px', borderRadius:'50%', background:'#10b981', boxShadow:'0 0 0 2px rgba(16,185,129,0.2)'}} />
+          <div style={{width:'7px', height:'7px', borderRadius:'50%', background:'#10b981'}} />
           <span style={{fontSize:'0.72rem', color:'#10b981', fontWeight:'700'}}>Live</span>
         </div>
       </div>
@@ -186,17 +180,7 @@ export default function Sidebar({ isAdmin, activePage, mobileOpen, onClose }) {
       {/* MOBILE BOTTOM NAV */}
       <div className="bottom-nav">
         <div className="bottom-nav-items">
-          {visibleNavItems.slice(0, 4).map(n => (
-            <div key={n.page} className={`bottom-nav-item ${activePage === n.page ? 'active' : ''}`}
-              onClick={() => { if (n.action) n.action(); else if (n.href) window.location.href = n.href }}>
-              <span className="bottom-nav-icon">{n.icon}</span>
-              <span className="bottom-nav-label">{n.label}</span>
-            </div>
-          ))}
-        {/* MOBILE BOTTOM NAV */}
-      <div className="bottom-nav">
-        <div className="bottom-nav-items">
-          {visibleNavItems.slice(0, 4).map(n => (
+          {bottomNavItems.map(n => (
             <div key={n.page} className={`bottom-nav-item ${activePage === n.page ? 'active' : ''}`}
               onClick={() => { if (n.action) n.action(); else if (n.href) window.location.href = n.href }}>
               <span className="bottom-nav-icon">{n.icon}</span>
@@ -210,6 +194,8 @@ export default function Sidebar({ isAdmin, activePage, mobileOpen, onClose }) {
           </div>
         </div>
       </div>
+
+      {/* CRM MODAL */}
       {showCRM && (
         <div className="modal-overlay" onClick={() => { setShowCRM(false); setCrmSent(false) }}>
           <div className="modal" onClick={e => e.stopPropagation()}>
