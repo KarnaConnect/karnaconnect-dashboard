@@ -25,15 +25,10 @@ export default function Dashboard() {
   const [clientName, setClientName] = useState('All Clients')
 
   useEffect(() => {
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      if (!session) { window.location.href = '/login' }
-      else { setUser(session.user); setAuthLoading(false) }
-    })
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) { window.location.href = '/login' }
       else { setUser(session.user); setAuthLoading(false) }
     })
-    return () => authListener.subscription.unsubscribe()
   }, [])
 
   useEffect(() => {
@@ -76,8 +71,10 @@ export default function Dashboard() {
   async function handleClientChange(clientId) {
     setSelectedClient(clientId)
     setExpanded({})
-    if (clientId === 'all') { setClientName('All Clients'); await fetchCalls(null) }
-    else {
+    if (clientId === 'all') {
+      setClientName('All Clients')
+      await fetchCalls(null)
+    } else {
       const client = clients.find(c => c.id === clientId)
       if (client) setClientName(client.business_name)
       await fetchCalls(clientId)
@@ -85,7 +82,11 @@ export default function Dashboard() {
   }
 
   function togglePanel(callId, panel) {
-    setExpanded(prev => ({ ...prev, [callId]: prev[callId] === panel ? null : panel }))
+    setExpanded(prev => {
+      const current = prev[callId]
+      if (current === panel) return { ...prev, [callId]: null }
+      return { ...prev, [callId]: panel }
+    })
   }
 
   const outcomeColor = (o) => {
@@ -98,18 +99,25 @@ export default function Dashboard() {
 
   const outcomeLabel = (o) => {
     if (!o) return 'Unknown'
-    if (o === 'customer-ended-call' || o === 'assistant-ended-call') return 'Completed'
+    if (o === 'customer-ended-call') return 'Completed'
+    if (o === 'assistant-ended-call') return 'Completed'
     if (o === 'voicemail') return 'Voicemail'
     if (o === 'no-answer') return 'No Answer'
     return o
   }
 
   if (authLoading) return (
-    <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'#fff', fontFamily:'Plus Jakarta Sans,sans-serif' }}>
-      <div style={{ textAlign:'center' }}>
-        <div style={{ width:'48px', height:'48px', border:'3px solid #EEEDFE', borderTopColor:'#534AB7', borderRadius:'50%', animation:'spin 0.8s linear infinite', margin:'0 auto 16px' }} />
-        <div style={{ fontSize:'0.85rem', color:'#94a3b8', fontWeight:'500' }}>Loading...</div>
-        <style>{`@keyframes spin { to { transform:rotate(360deg) } }`}</style>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f0effe', fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+      <div style={{ textAlign: 'center' }}>
+        <svg width="48" height="48" viewBox="0 0 48 48" style={{ marginBottom: '16px' }}>
+          <circle cx="24" cy="24" r="24" fill="#EEEDFE"/>
+          <rect x="10" y="18" width="4" height="12" rx="2" fill="#534AB7"/>
+          <rect x="17" y="13" width="4" height="22" rx="2" fill="#534AB7"/>
+          <rect x="24" y="8" width="4" height="32" rx="2" fill="#7F77DD"/>
+          <rect x="31" y="13" width="4" height="22" rx="2" fill="#534AB7"/>
+          <rect x="38" y="18" width="4" height="12" rx="2" fill="#534AB7"/>
+        </svg>
+        <div style={{ fontSize: '0.85rem', color: '#AFA9EC', fontWeight: '600' }}>Loading Mash...</div>
       </div>
     </div>
   )
@@ -120,301 +128,339 @@ export default function Dashboard() {
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
         *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
         html, body { height:100%; }
-        body { font-family:'Plus Jakarta Sans',sans-serif; background:#f8f9fb; -webkit-font-smoothing:antialiased; }
+        body { font-family:'Plus Jakarta Sans',sans-serif; background:#f0effe; -webkit-font-smoothing:antialiased; }
         .layout { display:flex; min-height:100vh; }
-        .main { margin-left:240px; flex:1; min-height:100vh; }
 
-        /* HERO HEADER */
-        .hero-header { background:linear-gradient(135deg,#1a1535 0%,#2d1f5e 100%); padding:32px 36px 28px; position:relative; overflow:hidden; }
-        .hero-header::after { content:''; position:absolute; right:-60px; top:-60px; width:300px; height:300px; background:radial-gradient(circle,rgba(127,119,221,0.15) 0%,transparent 70%); pointer-events:none; }
-        .hero-eyebrow { font-size:0.7rem; text-transform:uppercase; letter-spacing:2.5px; color:#7F77DD; font-weight:700; margin-bottom:8px; }
-        .hero-title { font-size:1.7rem; font-weight:800; color:#fff; letter-spacing:-0.5px; margin-bottom:4px; }
-        .hero-sub { font-size:0.82rem; color:#534AB7; }
-        .hero-right { display:flex; align-items:center; gap:10px; }
-        .hero-row { display:flex; justify-content:space-between; align-items:flex-start; }
-        .live-pill-hero { display:flex; align-items:center; gap:6px; background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.25); border-radius:20px; padding:6px 12px; }
-        .live-dot-hero { width:6px; height:6px; border-radius:50%; background:#10b981; animation:lp 2s infinite; }
-        @keyframes lp { 0%{box-shadow:0 0 0 0 rgba(16,185,129,0.5)} 70%{box-shadow:0 0 0 6px rgba(16,185,129,0)} 100%{box-shadow:0 0 0 0 rgba(16,185,129,0)} }
-        .live-text-hero { font-size:0.72rem; color:#10b981; font-weight:700; }
-        .admin-pill { display:flex; align-items:center; gap:6px; background:rgba(175,169,236,0.15); border:1px solid rgba(175,169,236,0.25); border-radius:20px; padding:6px 12px; font-size:0.72rem; color:#AFA9EC; font-weight:700; }
+        /* MOBILE TOPBAR */
+        .mobile-topbar { display:none; position:fixed; top:0; left:0; right:0; z-index:100; background:#1a1535; padding:14px 20px; align-items:center; justify-content:space-between; border-bottom:1px solid rgba(127,119,221,0.2); }
+        .hamburger { background:none; border:none; color:#AFA9EC; font-size:1.3rem; cursor:pointer; padding:4px; }
+        .mobile-logo { font-size:1.05rem; font-weight:800; color:#fff; }
+        .mobile-logo span { color:#AFA9EC; }
 
-        /* CONTENT */
-        .content { padding:28px 36px 100px; }
+        /* MAIN */
+        .main { margin-left:240px; flex:1; padding:40px 36px; min-height:100vh; }
+
+        /* TOPBAR */
+        .topbar { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:32px; gap:12px; }
+        .topbar-left {}
+        .page-eyebrow { font-size:0.72rem; text-transform:uppercase; letter-spacing:2px; color:#7F77DD; font-weight:700; margin-bottom:6px; }
+        .page-title { font-size:1.8rem; font-weight:800; color:#1a1535; letter-spacing:-0.8px; line-height:1.1; }
+        .page-sub { font-size:0.82rem; color:#94a3b8; margin-top:4px; }
+        .topbar-right { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+        .user-chip { font-size:0.75rem; color:#64748b; background:#fff; padding:7px 14px; border-radius:20px; border:1px solid #e2e8f0; font-weight:500; max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .live-badge { display:flex; align-items:center; gap:7px; background:linear-gradient(135deg,#534AB7,#7F77DD); color:#fff; font-size:0.72rem; font-weight:700; padding:8px 16px; border-radius:20px; letter-spacing:0.5px; box-shadow:0 4px 14px rgba(83,74,183,0.3); white-space:nowrap; }
+        .badge-blink { width:6px; height:6px; background:#fff; border-radius:50%; animation:bk 1.4s infinite; }
+        @keyframes bk { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
         /* CLIENT SELECTOR */
-        .client-selector-wrap { display:flex; align-items:center; gap:12px; background:#fff; border-radius:12px; padding:14px 18px; border:1px solid #f1f5f9; box-shadow:0 1px 3px rgba(0,0,0,0.04); margin-bottom:24px; }
+        .client-selector-wrap { margin-bottom:24px; display:flex; align-items:center; gap:14px; background:#fff; border-radius:14px; padding:16px 22px; border:1px solid #e2e8f5; box-shadow:0 1px 4px rgba(26,21,53,0.04); }
         .client-selector-label { font-size:0.72rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:1.5px; white-space:nowrap; }
-        .client-selector { flex:1; padding:7px 12px; border-radius:8px; border:1.5px solid #f1f5f9; font-size:0.875rem; font-family:'Plus Jakarta Sans',sans-serif; color:#0f172a; font-weight:600; background:#f8f9fb; cursor:pointer; outline:none; transition:border-color 0.2s; }
+        .client-selector { flex:1; padding:8px 14px; border-radius:8px; border:1.5px solid #e2e8f0; font-size:0.875rem; font-family:'Plus Jakarta Sans',sans-serif; color:#1a1535; font-weight:600; background:#f8fafc; cursor:pointer; outline:none; transition:border-color 0.2s; }
         .client-selector:focus { border-color:#534AB7; }
 
         /* STATS */
-        .stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:24px; }
-        .stat-card { background:#fff; border-radius:14px; padding:20px 18px; border:1px solid #f1f5f9; box-shadow:0 1px 3px rgba(0,0,0,0.04); transition:transform 0.2s, box-shadow 0.2s; cursor:default; }
-        .stat-card:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,0,0,0.06); }
-        .stat-icon { font-size:1.4rem; margin-bottom:12px; }
-        .stat-label { font-size:0.68rem; text-transform:uppercase; letter-spacing:1.5px; color:#94a3b8; font-weight:700; margin-bottom:6px; }
-        .stat-value { font-size:2.2rem; font-weight:800; color:#0f172a; line-height:1; letter-spacing:-1.5px; }
+        .stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:28px; }
+        .stat-card { background:#fff; border-radius:16px; padding:24px 20px; border:1px solid #e2e8f5; box-shadow:0 1px 4px rgba(26,21,53,0.04); position:relative; overflow:hidden; transition:transform 0.2s, box-shadow 0.2s; }
+        .stat-card:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(83,74,183,0.08); }
+        .stat-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; border-radius:16px 16px 0 0; }
+        .c1::before { background:linear-gradient(90deg,#534AB7,#7F77DD); }
+        .c2::before { background:linear-gradient(90deg,#10b981,#34d399); }
+        .c3::before { background:linear-gradient(90deg,#f59e0b,#fbbf24); }
+        .c4::before { background:linear-gradient(90deg,#8b5cf6,#534AB7); }
+        .stat-icon-wrap { width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; margin-bottom:14px; }
+        .c1 .stat-icon-wrap { background:#EEEDFE; }
+        .c2 .stat-icon-wrap { background:#f0fdf4; }
+        .c3 .stat-icon-wrap { background:#fffbeb; }
+        .c4 .stat-icon-wrap { background:#f5f3ff; }
+        .stat-label { font-size:0.68rem; text-transform:uppercase; letter-spacing:1.5px; color:#94a3b8; font-weight:700; margin-bottom:8px; }
+        .stat-value { font-size:2rem; font-weight:800; color:#1a1535; line-height:1; letter-spacing:-1px; }
         .stat-unit { font-size:1rem; font-weight:500; color:#94a3b8; letter-spacing:0; }
         .stat-sub { font-size:0.72rem; color:#94a3b8; margin-top:6px; }
-        .stat-accent { height:3px; border-radius:999px; margin-top:14px; }
 
-        /* CALLS CARD */
-        .calls-card { background:#fff; border-radius:16px; border:1px solid #f1f5f9; box-shadow:0 1px 3px rgba(0,0,0,0.04); overflow:hidden; }
-        .calls-hdr { padding:20px 24px; border-bottom:1px solid #f8f9fb; display:flex; justify-content:space-between; align-items:center; }
-        .calls-hdr-title { font-size:1rem; font-weight:700; color:#0f172a; }
-        .calls-hdr-count { font-size:0.72rem; color:#7F77DD; background:#f5f3ff; padding:3px 10px; border-radius:20px; font-weight:700; }
-
-        /* TABLE */
-        .calls-table { width:100%; border-collapse:collapse; }
-        .calls-table thead tr { background:#f8f9fb; }
-        .calls-table th { padding:11px 20px; text-align:left; font-size:0.65rem; text-transform:uppercase; letter-spacing:1.5px; color:#94a3b8; font-weight:700; border-bottom:1px solid #f1f5f9; }
-        .calls-table td { padding:15px 20px; font-size:0.845rem; color:#334155; border-bottom:1px solid #f8f9fb; vertical-align:middle; }
-        .calls-table tbody tr:last-child td { border-bottom:none; }
-        .calls-table tbody tr:hover td { background:#fafafa; }
-        .caller-num { font-weight:700; color:#0f172a; font-family:'JetBrains Mono',monospace; font-size:0.82rem; }
+        /* TABLE CARD */
+        .table-card { background:#fff; border-radius:16px; border:1px solid #e2e8f5; box-shadow:0 1px 4px rgba(26,21,53,0.04); overflow:hidden; }
+        .table-hdr { padding:20px 24px; border-bottom:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center; }
+        .table-hdr-left { display:flex; align-items:center; gap:10px; }
+        .table-hdr-title { font-size:1rem; font-weight:700; color:#1a1535; }
+        .table-count { font-size:0.72rem; color:#7F77DD; background:#EEEDFE; padding:3px 10px; border-radius:20px; border:1px solid #CECBF6; font-weight:700; }
+        .desktop-table { width:100%; border-collapse:collapse; }
+        .desktop-table thead tr { background:#fafbff; }
+        .desktop-table th { padding:11px 20px; text-align:left; font-size:0.67rem; text-transform:uppercase; letter-spacing:1.5px; color:#94a3b8; font-weight:700; border-bottom:1px solid #f1f5f9; white-space:nowrap; }
+        .desktop-table td { padding:16px 20px; font-size:0.845rem; color:#334155; border-bottom:1px solid #f8fafc; vertical-align:middle; }
+        .desktop-table tbody tr:last-child td { border-bottom:none; }
+        .desktop-table tbody tr:hover td { background:#fafbff; }
+        .caller-num { font-weight:700; color:#1a1535; font-family:'JetBrains Mono',monospace; font-size:0.82rem; }
         .date-text { color:#94a3b8; font-size:0.78rem; }
-        .outcome-badge { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:20px; font-size:0.72rem; font-weight:700; }
-        .action-btn { display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:8px; border:1px solid #f1f5f9; background:#f8f9fb; cursor:pointer; font-size:0.85rem; transition:all 0.15s; margin-right:3px; }
-        .action-btn:hover { border-color:#534AB7; background:#f5f3ff; }
-        .action-btn.active { border-color:#534AB7; background:#f5f3ff; }
+        .outcome-badge { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:20px; font-size:0.72rem; font-weight:700; white-space:nowrap; }
+        .action-btn { display:inline-flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:8px; border:1px solid #e2e8f0; background:#f8fafc; cursor:pointer; font-size:0.9rem; transition:all 0.15s; margin-right:4px; }
+        .action-btn:hover { border-color:#534AB7; background:#EEEDFE; }
+        .action-btn.active { border-color:#534AB7; background:#EEEDFE; }
 
         /* EXPAND */
         .expand-row td { padding:0 !important; border-bottom:1px solid #f1f5f9 !important; }
-        .expand-inner { padding:20px 24px; background:#fafafa; }
-        .expand-label { font-size:0.65rem; text-transform:uppercase; letter-spacing:1.5px; color:#7F77DD; font-weight:700; margin-bottom:10px; }
-        .transcript-scroll { max-height:260px; overflow-y:auto; }
-        .transcript-line { margin-bottom:6px; padding:10px 14px; border-radius:10px; font-size:0.84rem; color:#334155; line-height:1.6; }
-        .transcript-line.ai { background:#f5f3ff; border-left:3px solid #534AB7; }
+        .expand-inner { padding:24px; background:linear-gradient(135deg,#fafbff,#f8f9ff); border-top:1px solid #f1f5f9; }
+        .expand-label { font-size:0.66rem; text-transform:uppercase; letter-spacing:1.5px; color:#7F77DD; font-weight:700; margin-bottom:10px; display:flex; align-items:center; gap:6px; }
+        .transcript-scroll { max-height:280px; overflow-y:auto; border-radius:10px; }
+        .transcript-line { margin-bottom:8px; padding:10px 14px; border-radius:10px; font-size:0.84rem; color:#334155; line-height:1.6; }
+        .transcript-line.ai { background:#EEEDFE; border-left:3px solid #534AB7; }
         .transcript-line.user { background:#f0fdf4; border-left:3px solid #10b981; }
-        .transcript-speaker { font-size:0.62rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; display:block; margin-bottom:3px; }
+        .transcript-speaker { font-size:0.65rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; display:block; margin-bottom:3px; }
         .transcript-line.ai .transcript-speaker { color:#534AB7; }
         .transcript-line.user .transcript-speaker { color:#10b981; }
-        .summary-box { background:#fff; border:1px solid #f1f5f9; border-radius:10px; padding:16px; font-size:0.875rem; color:#475569; line-height:1.8; }
+        .summary-text { font-size:0.875rem; color:#475569; line-height:1.8; background:#fff; padding:16px; border-radius:10px; border:1px solid #e2e8f5; }
 
         /* MOBILE CARDS */
         .mobile-cards { display:none; }
-        .call-card { padding:16px 20px; border-bottom:1px solid #f8f9fb; }
+        .call-card { border-bottom:1px solid #f1f5f9; padding:18px 20px; }
         .call-card:last-child { border-bottom:none; }
-        .call-card-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px; }
+        .call-card-top { display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:12px; }
+        .call-card-num { font-weight:700; color:#1a1535; font-size:0.9rem; }
+        .call-card-date { font-size:0.72rem; color:#94a3b8; margin-top:2px; }
         .call-card-actions { display:flex; gap:6px; flex-wrap:wrap; }
-        .call-card-btn { display:inline-flex; align-items:center; gap:5px; padding:6px 11px; border-radius:8px; border:1px solid #f1f5f9; background:#f8f9fb; cursor:pointer; font-size:0.74rem; font-weight:600; color:#64748b; transition:all 0.15s; }
-        .call-card-btn:hover, .call-card-btn.active { border-color:#534AB7; background:#f5f3ff; color:#534AB7; }
-        .call-card-expand { margin-top:12px; background:#fafafa; border-radius:10px; padding:14px; border:1px solid #f1f5f9; }
+        .call-card-action-btn { display:inline-flex; align-items:center; gap:5px; padding:7px 12px; border-radius:8px; border:1px solid #e2e8f0; background:#f8fafc; cursor:pointer; font-size:0.75rem; font-weight:600; color:#475569; transition:all 0.15s; }
+        .call-card-action-btn:hover { border-color:#534AB7; background:#EEEDFE; color:#534AB7; }
+        .call-card-action-btn.active { border-color:#534AB7; background:#EEEDFE; color:#534AB7; }
+        .call-card-expand { margin-top:14px; background:#f8fbff; border-radius:12px; padding:16px; border:1px solid #CECBF6; }
 
-        /* EMPTY */
-        .empty-state { text-align:center; padding:64px 20px; }
-        .empty-icon { font-size:2.5rem; margin-bottom:14px; }
-        .empty-title { font-size:1rem; font-weight:700; color:#0f172a; margin-bottom:6px; }
+        /* EMPTY STATE */
+        .empty-state { text-align:center; padding:72px 20px; }
+        .empty-icon { width:64px; height:64px; border-radius:16px; background:linear-gradient(135deg,#EEEDFE,#CECBF6); display:flex; align-items:center; justify-content:center; font-size:1.8rem; margin:0 auto 16px; }
+        .empty-title { font-size:1.1rem; font-weight:800; color:#1a1535; margin-bottom:6px; }
         .empty-sub { font-size:0.84rem; color:#94a3b8; }
 
+        .overlay { display:none; position:fixed; inset:0; background:rgba(26,21,53,0.5); z-index:150; backdrop-filter:blur(2px); }
+        .overlay.show { display:block; }
+
         @media (max-width:900px) {
-          .main { margin-left:0; }
-          .hero-header { padding:80px 20px 24px; }
-          .hero-title { font-size:1.4rem; }
-          .content { padding:20px 16px 100px; }
-          .stats-grid { grid-template-columns:repeat(2,1fr); gap:10px; }
-          .stat-value { font-size:1.8rem; }
-          .calls-table { display:none; }
+          .mobile-topbar { display:flex; }
+          .main { margin-left:0; padding:80px 16px 24px; }
+          .stats-grid { grid-template-columns:repeat(2,1fr); gap:12px; }
+          .stat-card { padding:18px 16px; }
+          .stat-value { font-size:1.7rem; }
+          .topbar { flex-direction:column; gap:10px; margin-bottom:20px; }
+          .page-title { font-size:1.4rem; }
+          .desktop-table { display:none; }
           .mobile-cards { display:block; }
+          .table-hdr { padding:16px 18px; }
+          .user-chip { display:none; }
           .client-selector-wrap { flex-direction:column; align-items:flex-start; gap:8px; }
-          .hero-row { flex-direction:column; gap:12px; }
         }
         @media (max-width:480px) {
-          .stats-grid { gap:8px; }
-          .hero-header { padding:76px 16px 20px; }
-          .content { padding:16px 12px 100px; }
+          .stats-grid { grid-template-columns:repeat(2,1fr); gap:10px; }
+          .main { padding:76px 12px 20px; }
         }
       `}</style>
+
+      <div className={`overlay ${mobileNav ? 'show' : ''}`} onClick={() => setMobileNav(false)} />
+
+      <div className="mobile-topbar">
+        <button className="hamburger" onClick={() => setMobileNav(!mobileNav)}>☰</button>
+        <div className="mobile-logo">M<span>ash</span></div>
+        <div style={{width:'32px'}} />
+      </div>
 
       <div className="layout">
         <Sidebar isAdmin={isAdmin} activePage="dashboard" mobileOpen={mobileNav} onClose={() => setMobileNav(false)} />
 
         <main className="main">
-          {/* HERO HEADER */}
-          <div className="hero-header">
-            <div className="hero-row">
-              <div>
-                <div className="hero-eyebrow">AI Receptionist</div>
-                <div className="hero-title">
-                  {isAdmin ? 'Enterprise Dashboard' : clientName}
-                </div>
-                <div className="hero-sub">
-                  {new Date().toLocaleDateString('en-AU', { timeZone: PERTH, weekday:'long', year:'numeric', month:'long', day:'numeric' })}
-                </div>
+          <div className="topbar">
+            <div className="topbar-left">
+              <div className="page-eyebrow">AI Receptionist</div>
+              <div className="page-title">Call Dashboard</div>
+              <div className="page-sub">
+                {new Date().toLocaleDateString('en-AU', { timeZone: PERTH, weekday:'long', year:'numeric', month:'long', day:'numeric' })}
+                {!isAdmin && <span style={{marginLeft:'10px', color:'#7F77DD', fontWeight:'600'}}>· {clientName}</span>}
               </div>
-              <div className="hero-right">
-                {isAdmin && <div className="admin-pill">⚡ Admin</div>}
-                <div className="live-pill-hero">
-                  <div className="live-dot-hero" />
-                  <span className="live-text-hero">Live</span>
-                </div>
-              </div>
+            </div>
+            <div className="topbar-right">
+              {isAdmin && <div style={{display:'inline-flex', alignItems:'center', gap:'6px', background:'#EEEDFE', border:'1px solid #CECBF6', borderRadius:'20px', padding:'6px 14px', fontSize:'0.72rem', fontWeight:'700', color:'#534AB7'}}>⚡ Enterprise Admin</div>}
+              {user && <div className="user-chip">👤 {user.email}</div>}
+              <div className="live-badge"><div className="badge-blink" />LIVE</div>
             </div>
           </div>
 
-          <div className="content">
-            {isAdmin && (
-              <div className="client-selector-wrap">
-                <div className="client-selector-label">Viewing</div>
-                <select className="client-selector" value={selectedClient} onChange={e => handleClientChange(e.target.value)}>
-                  <option value="all">All Clients</option>
-                  {clients.map(c => <option key={c.id} value={c.id}>{c.business_name}</option>)}
-                </select>
-              </div>
-            )}
+          {isAdmin && (
+            <div className="client-selector-wrap">
+              <div className="client-selector-label">Viewing</div>
+              <select className="client-selector" value={selectedClient} onChange={e => handleClientChange(e.target.value)}>
+                <option value="all">All Clients — Combined View</option>
+                {clients.map(c => <option key={c.id} value={c.id}>{c.business_name}</option>)}
+              </select>
+            </div>
+          )}
 
-            <div className="stats-grid">
-              {[
-                { label: 'Total Calls', value: stats.total, unit: '', sub: 'All time', icon: '📞', accent: 'linear-gradient(90deg,#534AB7,#7F77DD)' },
-                { label: 'Today', value: stats.today, unit: '', sub: new Date().toLocaleDateString('en-AU', { timeZone: PERTH }), icon: '📅', accent: 'linear-gradient(90deg,#10b981,#34d399)' },
-                { label: 'Avg Duration', value: stats.avgDuration, unit: 's', sub: 'Per call', icon: '⏱', accent: 'linear-gradient(90deg,#f59e0b,#fbbf24)' },
-                { label: 'Completed', value: stats.completed, unit: '', sub: 'Handled', icon: '✅', accent: 'linear-gradient(90deg,#8b5cf6,#534AB7)' },
-              ].map(s => (
-                <div key={s.label} className="stat-card">
-                  <div className="stat-icon">{s.icon}</div>
-                  <div className="stat-label">{s.label}</div>
-                  <div className="stat-value">{s.value}<span className="stat-unit">{s.unit}</span></div>
-                  <div className="stat-sub">{s.sub}</div>
-                  <div className="stat-accent" style={{background: s.accent}} />
-                </div>
-              ))}
+          <div className="stats-grid">
+            {[
+              { label: 'Total Calls', value: stats.total, unit: '', sub: 'All time', icon: '📞', c: 'c1' },
+              { label: 'Today', value: stats.today, unit: '', sub: new Date().toLocaleDateString('en-AU', { timeZone: PERTH }), icon: '📅', c: 'c2' },
+              { label: 'Avg Duration', value: stats.avgDuration, unit: 's', sub: 'Per call', icon: '⏱', c: 'c3' },
+              { label: 'Completed', value: stats.completed, unit: '', sub: 'Calls handled', icon: '✅', c: 'c4' },
+            ].map(s => (
+              <div key={s.label} className={`stat-card ${s.c}`}>
+                <div className="stat-icon-wrap">{s.icon}</div>
+                <div className="stat-label">{s.label}</div>
+                <div className="stat-value">{s.value}<span className="stat-unit">{s.unit}</span></div>
+                <div className="stat-sub">{s.sub}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="table-card">
+            <div className="table-hdr">
+              <div className="table-hdr-left">
+                <div className="table-hdr-title">Recent Calls</div>
+                <div className="table-count">{calls.length} records</div>
+              </div>
             </div>
 
-            <div className="calls-card">
-              <div className="calls-hdr">
-                <div className="calls-hdr-title">Recent Calls</div>
-                <div className="calls-hdr-count">{calls.length} total</div>
+            {calls.length === 0 ? (
+              <div className="empty-state">
+                <div className="empty-icon">📭</div>
+                <div className="empty-title">No calls yet</div>
+                <div className="empty-sub">Once Mash handles calls, they'll appear here in real time.</div>
               </div>
-
-              {calls.length === 0 ? (
-                <div className="empty-state">
-                  <div className="empty-icon">📭</div>
-                  <div className="empty-title">No calls yet</div>
-                  <div className="empty-sub">Calls handled by Mash will appear here.</div>
-                </div>
-              ) : (
-                <>
-                  <table className="calls-table">
-                    <thead>
-                      <tr>
-                        <th>Date & Time</th>
-                        <th>Caller</th>
-                        {isAdmin && selectedClient === 'all' && <th>Client</th>}
-                        <th>Outcome</th>
-                        <th>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {calls.map(call => {
-                        const callClientName = isAdmin && selectedClient === 'all'
-                          ? (clients.find(c => c.id === call.client_id)?.business_name || 'KarnaConnect')
-                          : null
-                        return (
-                          <>
-                            <tr key={call.id}>
-                              <td><span className="date-text">{perthDate(call.created_at)}</span></td>
-                              <td><span className="caller-num">{call.caller_number || 'Unknown'}</span></td>
-                              {isAdmin && selectedClient === 'all' && <td style={{fontSize:'0.78rem', color:'#64748b'}}>{callClientName}</td>}
-                              <td>
-                                <span className="outcome-badge" style={{
-                                  background: outcomeColor(call.call_outcome) + '12',
-                                  color: outcomeColor(call.call_outcome),
-                                  border: `1px solid ${outcomeColor(call.call_outcome)}25`
-                                }}>
-                                  <span style={{width:'5px', height:'5px', borderRadius:'50%', background: outcomeColor(call.call_outcome), display:'inline-block', flexShrink:0}} />
-                                  {outcomeLabel(call.call_outcome)}
-                                </span>
-                              </td>
-                              <td>
-                                {call.recording_url && <span className={`action-btn ${expanded[call.id] === 'recording' ? 'active' : ''}`} onClick={() => togglePanel(call.id, 'recording')} title="Recording">🎙</span>}
-                                {call.call_summary && <span className={`action-btn ${expanded[call.id] === 'summary' ? 'active' : ''}`} onClick={() => togglePanel(call.id, 'summary')} title="Summary">✨</span>}
-                                {call.full_transcript && <span className={`action-btn ${expanded[call.id] === 'transcript' ? 'active' : ''}`} onClick={() => togglePanel(call.id, 'transcript')} title="Transcript">📋</span>}
-                              </td>
-                            </tr>
-                            {expanded[call.id] && (
-                              <tr key={call.id + '-exp'} className="expand-row">
-                                <td colSpan={isAdmin && selectedClient === 'all' ? 5 : 4}>
-                                  <div className="expand-inner">
-                                    {expanded[call.id] === 'recording' && call.recording_url && (
-                                      <>
-                                        <div className="expand-label">🎙 Recording</div>
-                                        <audio controls style={{ width:'100%', borderRadius:'8px', height:'36px', accentColor:'#534AB7' }}>
-                                          <source src={call.recording_url} type="audio/wav" />
-                                        </audio>
-                                      </>
-                                    )}
-                                    {expanded[call.id] === 'summary' && call.call_summary && (
-                                      <>
-                                        <div className="expand-label">✨ AI Summary</div>
-                                        <div className="summary-box">{call.call_summary}</div>
-                                      </>
-                                    )}
-                                    {expanded[call.id] === 'transcript' && call.full_transcript && (
-                                      <>
-                                        <div className="expand-label">📋 Transcript</div>
-                                        <div className="transcript-scroll">
-                                          {call.full_transcript.split('\n').map((line, i) => {
-                                            const isAI = line.startsWith('AI:')
-                                            const isUser = line.startsWith('User:')
-                                            return line.trim() ? (
-                                              <div key={i} className={`transcript-line ${isAI ? 'ai' : isUser ? 'user' : ''}`}>
-                                                {(isAI || isUser) && <span className="transcript-speaker">{isAI ? '⚡ Mash' : '👤 Caller'}</span>}
-                                                {line.replace('AI: ', '').replace('User: ', '')}
-                                              </div>
-                                            ) : null
-                                          })}
-                                        </div>
-                                      </>
-                                    )}
-                                  </div>
-                                </td>
-                              </tr>
-                            )}
-                          </>
-                        )
-                      })}
-                    </tbody>
-                  </table>
-
-                  <div className="mobile-cards">
+            ) : (
+              <>
+                <table className="desktop-table">
+                  <thead>
+                    <tr>
+                      <th>Date & Time (AWST)</th>
+                      <th>Caller</th>
+                      {isAdmin && selectedClient === 'all' && <th>Client</th>}
+                      <th>Outcome</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
                     {calls.map(call => {
                       const callClientName = isAdmin && selectedClient === 'all'
                         ? (clients.find(c => c.id === call.client_id)?.business_name || 'KarnaConnect')
                         : null
                       return (
-                        <div key={call.id} className="call-card">
-                          <div className="call-card-top">
-                            <div>
-                              <div style={{fontWeight:'700', color:'#0f172a', fontSize:'0.9rem', fontFamily:'JetBrains Mono,monospace'}}>{call.caller_number || 'Unknown'}</div>
-                              <div style={{fontSize:'0.72rem', color:'#94a3b8', marginTop:'2px'}}>{perthDate(call.created_at)}</div>
-                              {callClientName && <div style={{fontSize:'0.7rem', color:'#7F77DD', fontWeight:'600', marginTop:'2px'}}>{callClientName}</div>}
-                            </div>
-                            <span className="outcome-badge" style={{
-                              background: outcomeColor(call.call_outcome) + '12',
-                              color: outcomeColor(call.call_outcome),
-                              border: `1px solid ${outcomeColor(call.call_outcome)}25`
-                            }}>
-                              <span style={{width:'5px', height:'5px', borderRadius:'50%', background: outcomeColor(call.call_outcome), display:'inline-block'}} />
-                              {outcomeLabel(call.call_outcome)}
-                            </span>
-                          </div>
-                          <div className="call-card-actions">
-                            {call.recording_url && <span className={`call-card-btn ${expanded[call.id] === 'recording' ? 'active' : ''}`} onClick={() => togglePanel(call.id, 'recording')}>🎙 Recording</span>}
-                            {call.call_summary && <span className={`call-card-btn ${expanded[call.id] === 'summary' ? 'active' : ''}`} onClick={() => togglePanel(call.id, 'summary')}>✨ Summary</span>}
-                            {call.full_transcript && <span className={`call-card-btn ${expanded[call.id] === 'transcript' ? 'active' : ''}`} onClick={() => togglePanel(call.id, 'transcript')}>📋 Transcript</span>}
-                          </div>
+                        <>
+                          <tr key={call.id}>
+                            <td><span className="date-text">{perthDate(call.created_at)}</span></td>
+                            <td><span className="caller-num">{call.caller_number || 'Unknown'}</span></td>
+                            {isAdmin && selectedClient === 'all' && <td style={{fontSize:'0.78rem', color:'#64748b'}}>{callClientName}</td>}
+                            <td>
+                              <span className="outcome-badge" style={{
+                                background: outcomeColor(call.call_outcome) + '15',
+                                color: outcomeColor(call.call_outcome),
+                                border: `1px solid ${outcomeColor(call.call_outcome)}30`
+                              }}>
+                                <span style={{width:'6px', height:'6px', borderRadius:'50%', background: outcomeColor(call.call_outcome), display:'inline-block'}} />
+                                {outcomeLabel(call.call_outcome)}
+                              </span>
+                            </td>
+                            <td>
+                              {call.recording_url && (
+                                <span className={`action-btn ${expanded[call.id] === 'recording' ? 'active' : ''}`} onClick={() => togglePanel(call.id, 'recording')} title="Play Recording">🎙</span>
+                              )}
+                              {call.call_summary && (
+                                <span className={`action-btn ${expanded[call.id] === 'summary' ? 'active' : ''}`} onClick={() => togglePanel(call.id, 'summary')} title="View Summary">📄</span>
+                              )}
+                              {call.full_transcript && (
+                                <span className={`action-btn ${expanded[call.id] === 'transcript' ? 'active' : ''}`} onClick={() => togglePanel(call.id, 'transcript')} title="View Transcript">📋</span>
+                              )}
+                            </td>
+                          </tr>
                           {expanded[call.id] && (
-                            <div className="call-card-expand">
-                              {expanded[call.id] === 'recording' && call.recording_url && (
-                                <><div className="expand-label">🎙 Recording</div>
-                                <audio controls style={{ width:'100%', borderRadius:'6px', height:'32px' }}><source src={call.recording_url} type="audio/wav" /></audio></>
-                              )}
-                              {expanded[call.id] === 'summary' && call.call_summary && (
-                                <><div className="expand-label">✨ Summary</div>
-                                <p style={{ fontSize:'0.84rem', color:'#475569', lineHeight:'1.7', marginTop:'6px' }}>{call.call_summary}</p></>
-                              )}
-                              {expanded[call.id] === 'transcript' && call.full_transcript && (
-                                <><div className="expand-label">📋 Transcript</div>
+                            <tr key={call.id + '-exp'} className="expand-row">
+                              <td colSpan={isAdmin && selectedClient === 'all' ? 5 : 4}>
+                                <div className="expand-inner">
+                                  {expanded[call.id] === 'recording' && call.recording_url && (
+                                    <div>
+                                      <div className="expand-label">🎙 Call Recording</div>
+                                      <audio controls style={{ width:'100%', borderRadius:'8px', height:'36px', accentColor:'#534AB7' }}>
+                                        <source src={call.recording_url} type="audio/wav" />
+                                      </audio>
+                                    </div>
+                                  )}
+                                  {expanded[call.id] === 'summary' && call.call_summary && (
+                                    <div>
+                                      <div className="expand-label">✨ AI Summary</div>
+                                      <div className="summary-text">{call.call_summary}</div>
+                                    </div>
+                                  )}
+                                  {expanded[call.id] === 'transcript' && call.full_transcript && (
+                                    <div>
+                                      <div className="expand-label">📋 Full Transcript</div>
+                                      <div className="transcript-scroll">
+                                        {call.full_transcript.split('\n').map((line, i) => {
+                                          const isAI = line.startsWith('AI:')
+                                          const isUser = line.startsWith('User:')
+                                          return line.trim() ? (
+                                            <div key={i} className={`transcript-line ${isAI ? 'ai' : isUser ? 'user' : ''}`}>
+                                              {(isAI || isUser) && <span className="transcript-speaker">{isAI ? '⚡ Mash' : '👤 Caller'}</span>}
+                                              {line.replace('AI: ', '').replace('User: ', '')}
+                                            </div>
+                                          ) : null
+                                        })}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </>
+                      )
+                    })}
+                  </tbody>
+                </table>
+
+                <div className="mobile-cards">
+                  {calls.map(call => {
+                    const callClientName = isAdmin && selectedClient === 'all'
+                      ? (clients.find(c => c.id === call.client_id)?.business_name || 'KarnaConnect')
+                      : null
+                    return (
+                      <div key={call.id} className="call-card">
+                        <div className="call-card-top">
+                          <div>
+                            <div className="call-card-num">{call.caller_number || 'Unknown'}</div>
+                            <div className="call-card-date">{perthDate(call.created_at)}</div>
+                            {callClientName && <div style={{fontSize:'0.7rem', color:'#7F77DD', fontWeight:'600', marginTop:'2px'}}>📋 {callClientName}</div>}
+                          </div>
+                          <span className="outcome-badge" style={{
+                            background: outcomeColor(call.call_outcome) + '15',
+                            color: outcomeColor(call.call_outcome),
+                            border: `1px solid ${outcomeColor(call.call_outcome)}30`
+                          }}>
+                            <span style={{width:'6px', height:'6px', borderRadius:'50%', background: outcomeColor(call.call_outcome), display:'inline-block'}} />
+                            {outcomeLabel(call.call_outcome)}
+                          </span>
+                        </div>
+                        <div className="call-card-actions">
+                          {call.recording_url && (
+                            <span className={`call-card-action-btn ${expanded[call.id] === 'recording' ? 'active' : ''}`} onClick={() => togglePanel(call.id, 'recording')}>🎙 Recording</span>
+                          )}
+                          {call.call_summary && (
+                            <span className={`call-card-action-btn ${expanded[call.id] === 'summary' ? 'active' : ''}`} onClick={() => togglePanel(call.id, 'summary')}>✨ Summary</span>
+                          )}
+                          {call.full_transcript && (
+                            <span className={`call-card-action-btn ${expanded[call.id] === 'transcript' ? 'active' : ''}`} onClick={() => togglePanel(call.id, 'transcript')}>📋 Transcript</span>
+                          )}
+                        </div>
+                        {expanded[call.id] && (
+                          <div className="call-card-expand">
+                            {expanded[call.id] === 'recording' && call.recording_url && (
+                              <>
+                                <div className="expand-label">🎙 Recording</div>
+                                <audio controls style={{ width:'100%', borderRadius:'6px', height:'32px' }}>
+                                  <source src={call.recording_url} type="audio/wav" />
+                                </audio>
+                              </>
+                            )}
+                            {expanded[call.id] === 'summary' && call.call_summary && (
+                              <>
+                                <div className="expand-label">✨ AI Summary</div>
+                                <p style={{ fontSize:'0.84rem', color:'#475569', lineHeight:'1.7' }}>{call.call_summary}</p>
+                              </>
+                            )}
+                            {expanded[call.id] === 'transcript' && call.full_transcript && (
+                              <>
+                                <div className="expand-label">📋 Transcript</div>
                                 <div style={{ maxHeight:'200px', overflowY:'auto', marginTop:'6px' }}>
                                   {call.full_transcript.split('\n').map((line, i) => (
                                     line.trim() ? (
@@ -424,17 +470,17 @@ export default function Dashboard() {
                                       </div>
                                     ) : null
                                   ))}
-                                </div></>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      )
-                    })}
-                  </div>
-                </>
-              )}
-            </div>
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              </>
+            )}
           </div>
         </main>
       </div>
