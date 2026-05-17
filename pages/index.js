@@ -37,7 +37,6 @@ export default function Dashboard() {
       const { data: userClient } = await supabase
         .from('user_clients').select('client_id, role')
         .eq('user_id', user.id).single()
-
       if (userClient && userClient.role === 'admin') {
         setIsAdmin(true)
         const { data: allClients } = await supabase
@@ -91,7 +90,7 @@ export default function Dashboard() {
   }
 
   const outcomeColor = (o) => {
-    if (!o) return '#64748b'
+    if (!o) return '#94a3b8'
     if (o.includes('ended')) return '#10b981'
     if (o.includes('voicemail')) return '#f59e0b'
     if (o.includes('no-answer')) return '#ef4444'
@@ -107,16 +106,19 @@ export default function Dashboard() {
     return o
   }
 
-  const statCards = [
-    { label: 'Total Calls', value: stats.total, unit: '', sub: 'All time', icon: '📞', c: 'c1' },
-    { label: 'Today', value: stats.today, unit: '', sub: perthDateShort(new Date()), icon: '📅', c: 'c2' },
-    { label: 'Avg Duration', value: stats.avgDuration, unit: 's', sub: 'Per call', icon: '⏱', c: 'c3' },
-    { label: 'Completed', value: stats.completed, unit: '', sub: 'Calls handled', icon: '✅', c: 'c4' },
-  ]
-
   if (authLoading) return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#eef2f9', fontFamily: 'Plus Jakarta Sans, sans-serif', fontSize: '0.9rem', color: '#94a3b8' }}>
-      Loading...
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f0effe', fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+      <div style={{ textAlign: 'center' }}>
+        <svg width="48" height="48" viewBox="0 0 48 48" style={{ marginBottom: '16px' }}>
+          <circle cx="24" cy="24" r="24" fill="#EEEDFE"/>
+          <rect x="10" y="18" width="4" height="12" rx="2" fill="#534AB7"/>
+          <rect x="17" y="13" width="4" height="22" rx="2" fill="#534AB7"/>
+          <rect x="24" y="8" width="4" height="32" rx="2" fill="#7F77DD"/>
+          <rect x="31" y="13" width="4" height="22" rx="2" fill="#534AB7"/>
+          <rect x="38" y="18" width="4" height="12" rx="2" fill="#534AB7"/>
+        </svg>
+        <div style={{ fontSize: '0.85rem', color: '#AFA9EC', fontWeight: '600' }}>Loading Mash...</div>
+      </div>
     </div>
   )
 
@@ -126,110 +128,125 @@ export default function Dashboard() {
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
         *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
         html, body { height:100%; }
-        body { font-family:'Plus Jakarta Sans',sans-serif; background:#eef2f9; -webkit-font-smoothing:antialiased; }
+        body { font-family:'Plus Jakarta Sans',sans-serif; background:#f0effe; -webkit-font-smoothing:antialiased; }
         .layout { display:flex; min-height:100vh; }
-        .mobile-topbar { display:none; position:fixed; top:0; left:0; right:0; z-index:100; background:#1a1535; padding:14px 20px; align-items:center; justify-content:space-between; border-bottom:1px solid rgba(37,99,235,0.15); }
-        .hamburger { background:none; border:none; color:#94a3b8; font-size:1.3rem; cursor:pointer; padding:4px; }
+
+        /* MOBILE TOPBAR */
+        .mobile-topbar { display:none; position:fixed; top:0; left:0; right:0; z-index:100; background:#1a1535; padding:14px 20px; align-items:center; justify-content:space-between; border-bottom:1px solid rgba(127,119,221,0.2); }
+        .hamburger { background:none; border:none; color:#AFA9EC; font-size:1.3rem; cursor:pointer; padding:4px; }
         .mobile-logo { font-size:1.05rem; font-weight:800; color:#fff; }
-        .mobile-logo span { color:#7F77DD; }
-        .main { margin-left:240px; flex:1; padding:36px 32px; min-height:100vh; }
-        .topbar { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:28px; gap:12px; }
-        .page-title { font-size:1.6rem; font-weight:800; color:#1a1535; letter-spacing:-0.6px; line-height:1.2; }
-        .page-sub { font-size:0.82rem; color:#94a3b8; margin-top:3px; }
-        .client-tag { display:inline-block; background:#eff6ff; color:#534AB7; border:1px solid #bfdbfe; border-radius:6px; font-size:0.72rem; font-weight:700; padding:3px 10px; margin-top:6px; }
+        .mobile-logo span { color:#AFA9EC; }
+
+        /* MAIN */
+        .main { margin-left:240px; flex:1; padding:40px 36px; min-height:100vh; }
+
+        /* TOPBAR */
+        .topbar { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:32px; gap:12px; }
+        .topbar-left {}
+        .page-eyebrow { font-size:0.72rem; text-transform:uppercase; letter-spacing:2px; color:#7F77DD; font-weight:700; margin-bottom:6px; }
+        .page-title { font-size:1.8rem; font-weight:800; color:#1a1535; letter-spacing:-0.8px; line-height:1.1; }
+        .page-sub { font-size:0.82rem; color:#94a3b8; margin-top:4px; }
         .topbar-right { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
-        .user-chip { font-size:0.75rem; color:#64748b; background:#fff; padding:7px 12px; border-radius:20px; border:1px solid #e2e8f0; max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-        .live-badge { display:flex; align-items:center; gap:7px; flex-shrink:0; background:linear-gradient(135deg,#534AB7,#7F77DD); color:#fff; font-size:0.72rem; font-weight:700; padding:8px 15px; border-radius:20px; letter-spacing:0.5px; box-shadow:0 4px 14px rgba(37,99,235,0.3); white-space:nowrap; }
+        .user-chip { font-size:0.75rem; color:#64748b; background:#fff; padding:7px 14px; border-radius:20px; border:1px solid #e2e8f0; font-weight:500; max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .live-badge { display:flex; align-items:center; gap:7px; background:linear-gradient(135deg,#534AB7,#7F77DD); color:#fff; font-size:0.72rem; font-weight:700; padding:8px 16px; border-radius:20px; letter-spacing:0.5px; box-shadow:0 4px 14px rgba(83,74,183,0.3); white-space:nowrap; }
         .badge-blink { width:6px; height:6px; background:#fff; border-radius:50%; animation:bk 1.4s infinite; }
-        @keyframes bk { 0%,100%{opacity:1} 50%{opacity:0.2} }
-        .client-selector-wrap { margin-bottom:20px; display:flex; align-items:center; gap:12px; background:#fff; border-radius:12px; padding:14px 20px; border:1px solid #e2e8f5; box-shadow:0 1px 4px rgba(8,17,43,0.05); }
-        .client-selector-label { font-size:0.78rem; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:1px; white-space:nowrap; }
-        .client-selector { flex:1; padding:8px 14px; border-radius:8px; border:1.5px solid #e2e8f0; font-size:0.875rem; font-family:'Plus Jakarta Sans',sans-serif; color:#1a1535; font-weight:600; background:#f8fafc; cursor:pointer; outline:none; }
+        @keyframes bk { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+        /* CLIENT SELECTOR */
+        .client-selector-wrap { margin-bottom:24px; display:flex; align-items:center; gap:14px; background:#fff; border-radius:14px; padding:16px 22px; border:1px solid #e2e8f5; box-shadow:0 1px 4px rgba(26,21,53,0.04); }
+        .client-selector-label { font-size:0.72rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:1.5px; white-space:nowrap; }
+        .client-selector { flex:1; padding:8px 14px; border-radius:8px; border:1.5px solid #e2e8f0; font-size:0.875rem; font-family:'Plus Jakarta Sans',sans-serif; color:#1a1535; font-weight:600; background:#f8fafc; cursor:pointer; outline:none; transition:border-color 0.2s; }
         .client-selector:focus { border-color:#534AB7; }
-        .client-badge { display:inline-flex; align-items:center; gap:6px; background:#eff6ff; color:#534AB7; border:1px solid #bfdbfe; border-radius:20px; font-size:0.72rem; font-weight:700; padding:4px 12px; }
-        .stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px; }
-        .stat-card { background:#fff; border-radius:14px; padding:20px 18px; border:1px solid #e2e8f5; box-shadow:0 1px 4px rgba(8,17,43,0.05); position:relative; overflow:hidden; transition:transform 0.2s, box-shadow 0.2s; }
-        .stat-card:hover { transform:translateY(-2px); box-shadow:0 6px 18px rgba(8,17,43,0.09); }
-        .stat-card::after { content:''; position:absolute; bottom:0; left:0; right:0; height:3px; border-radius:0 0 14px 14px; }
-        .c1::after { background:linear-gradient(90deg,#534AB7,#7F77DD); }
-        .c2::after { background:linear-gradient(90deg,#10b981,#34d399); }
-        .c3::after { background:linear-gradient(90deg,#f59e0b,#fbbf24); }
-        .c4::after { background:linear-gradient(90deg,#8b5cf6,#534AB7); }
-        .stat-icon { width:38px; height:38px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:1rem; margin-bottom:12px; }
-        .c1 .stat-icon { background:#eff6ff; }
-        .c2 .stat-icon { background:#f0fdf4; }
-        .c3 .stat-icon { background:#fffbeb; }
-        .c4 .stat-icon { background:#f5f3ff; }
-        .stat-label { font-size:0.68rem; text-transform:uppercase; letter-spacing:1.2px; color:#94a3b8; font-weight:700; margin-bottom:6px; }
-        .stat-value { font-size:1.9rem; font-weight:800; color:#1a1535; line-height:1; letter-spacing:-0.5px; }
-        .stat-unit { font-size:0.95rem; font-weight:500; color:#94a3b8; }
-        .stat-sub { font-size:0.72rem; color:#94a3b8; margin-top:5px; }
-        .table-card { background:#fff; border-radius:14px; border:1px solid #e2e8f5; box-shadow:0 1px 4px rgba(8,17,43,0.05); overflow:hidden; }
-        .table-hdr { padding:18px 22px; border-bottom:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center; background:linear-gradient(135deg,#fafbff,#f8fafc); }
-        .table-hdr-title { font-size:0.95rem; font-weight:700; color:#1a1535; display:flex; align-items:center; gap:7px; }
-        .table-count { font-size:0.75rem; color:#94a3b8; background:#f1f5f9; padding:3px 11px; border-radius:20px; border:1px solid #e2e8f0; font-weight:600; }
+
+        /* STATS */
+        .stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:28px; }
+        .stat-card { background:#fff; border-radius:16px; padding:24px 20px; border:1px solid #e2e8f5; box-shadow:0 1px 4px rgba(26,21,53,0.04); position:relative; overflow:hidden; transition:transform 0.2s, box-shadow 0.2s; }
+        .stat-card:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(83,74,183,0.08); }
+        .stat-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; border-radius:16px 16px 0 0; }
+        .c1::before { background:linear-gradient(90deg,#534AB7,#7F77DD); }
+        .c2::before { background:linear-gradient(90deg,#10b981,#34d399); }
+        .c3::before { background:linear-gradient(90deg,#f59e0b,#fbbf24); }
+        .c4::before { background:linear-gradient(90deg,#8b5cf6,#534AB7); }
+        .stat-icon-wrap { width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; margin-bottom:14px; }
+        .c1 .stat-icon-wrap { background:#EEEDFE; }
+        .c2 .stat-icon-wrap { background:#f0fdf4; }
+        .c3 .stat-icon-wrap { background:#fffbeb; }
+        .c4 .stat-icon-wrap { background:#f5f3ff; }
+        .stat-label { font-size:0.68rem; text-transform:uppercase; letter-spacing:1.5px; color:#94a3b8; font-weight:700; margin-bottom:8px; }
+        .stat-value { font-size:2rem; font-weight:800; color:#1a1535; line-height:1; letter-spacing:-1px; }
+        .stat-unit { font-size:1rem; font-weight:500; color:#94a3b8; letter-spacing:0; }
+        .stat-sub { font-size:0.72rem; color:#94a3b8; margin-top:6px; }
+
+        /* TABLE CARD */
+        .table-card { background:#fff; border-radius:16px; border:1px solid #e2e8f5; box-shadow:0 1px 4px rgba(26,21,53,0.04); overflow:hidden; }
+        .table-hdr { padding:20px 24px; border-bottom:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center; }
+        .table-hdr-left { display:flex; align-items:center; gap:10px; }
+        .table-hdr-title { font-size:1rem; font-weight:700; color:#1a1535; }
+        .table-count { font-size:0.72rem; color:#7F77DD; background:#EEEDFE; padding:3px 10px; border-radius:20px; border:1px solid #CECBF6; font-weight:700; }
         .desktop-table { width:100%; border-collapse:collapse; }
         .desktop-table thead tr { background:#fafbff; }
-        .desktop-table th { padding:10px 18px; text-align:left; font-size:0.67rem; text-transform:uppercase; letter-spacing:1.2px; color:#94a3b8; font-weight:700; border-bottom:1px solid #f1f5f9; white-space:nowrap; }
-        .desktop-table td { padding:14px 18px; font-size:0.845rem; color:#334155; border-bottom:1px solid #f8fafc; vertical-align:middle; }
-        .desktop-table td.date-col { white-space:nowrap; color:#64748b; font-size:0.8rem; width:160px; }
-        .desktop-table td.caller-col { white-space:nowrap; width:150px; }
-        .desktop-table td.outcome-col { white-space:nowrap; width:130px; }
-        .desktop-table td.client-col { white-space:nowrap; width:140px; font-size:0.78rem; color:#64748b; }
-        .desktop-table td.actions-col { width:120px; white-space:nowrap; }
+        .desktop-table th { padding:11px 20px; text-align:left; font-size:0.67rem; text-transform:uppercase; letter-spacing:1.5px; color:#94a3b8; font-weight:700; border-bottom:1px solid #f1f5f9; white-space:nowrap; }
+        .desktop-table td { padding:16px 20px; font-size:0.845rem; color:#334155; border-bottom:1px solid #f8fafc; vertical-align:middle; }
         .desktop-table tbody tr:last-child td { border-bottom:none; }
+        .desktop-table tbody tr:hover td { background:#fafbff; }
+        .caller-num { font-weight:700; color:#1a1535; font-family:'JetBrains Mono',monospace; font-size:0.82rem; }
+        .date-text { color:#94a3b8; font-size:0.78rem; }
+        .outcome-badge { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:20px; font-size:0.72rem; font-weight:700; white-space:nowrap; }
         .action-btn { display:inline-flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:8px; border:1px solid #e2e8f0; background:#f8fafc; cursor:pointer; font-size:0.9rem; transition:all 0.15s; margin-right:4px; }
-        .action-btn:hover { border-color:#534AB7; background:#eff6ff; }
-        .action-btn.active { border-color:#534AB7; background:#eff6ff; }
-        .expand-row td { padding:0 !important; border-bottom:1px solid #e8edf8 !important; }
-        .expand-inner { padding:20px 24px; background:#f8fbff; }
-        .expand-section { margin-bottom:16px; }
-        .expand-section:last-child { margin-bottom:0; }
-        .expand-label { font-size:0.66rem; text-transform:uppercase; letter-spacing:1px; color:#534AB7; font-weight:700; margin-bottom:8px; }
-        .transcript-line { margin-bottom:8px; padding:8px 12px; border-radius:8px; font-size:0.84rem; color:#334155; line-height:1.6; }
-        .transcript-line.ai { background:#eff6ff; border-left:3px solid #534AB7; }
+        .action-btn:hover { border-color:#534AB7; background:#EEEDFE; }
+        .action-btn.active { border-color:#534AB7; background:#EEEDFE; }
+
+        /* EXPAND */
+        .expand-row td { padding:0 !important; border-bottom:1px solid #f1f5f9 !important; }
+        .expand-inner { padding:24px; background:linear-gradient(135deg,#fafbff,#f8f9ff); border-top:1px solid #f1f5f9; }
+        .expand-label { font-size:0.66rem; text-transform:uppercase; letter-spacing:1.5px; color:#7F77DD; font-weight:700; margin-bottom:10px; display:flex; align-items:center; gap:6px; }
+        .transcript-scroll { max-height:280px; overflow-y:auto; border-radius:10px; }
+        .transcript-line { margin-bottom:8px; padding:10px 14px; border-radius:10px; font-size:0.84rem; color:#334155; line-height:1.6; }
+        .transcript-line.ai { background:#EEEDFE; border-left:3px solid #534AB7; }
         .transcript-line.user { background:#f0fdf4; border-left:3px solid #10b981; }
-        .transcript-speaker { font-size:0.66rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; display:block; margin-bottom:3px; }
+        .transcript-speaker { font-size:0.65rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; display:block; margin-bottom:3px; }
         .transcript-line.ai .transcript-speaker { color:#534AB7; }
         .transcript-line.user .transcript-speaker { color:#10b981; }
-        .transcript-scroll { max-height:280px; overflow-y:auto; border-radius:8px; }
-        .caller-num { font-weight:700; color:#1a1535; font-family:'JetBrains Mono',monospace; font-size:0.82rem; }
-        .outcome-badge { display:inline-flex; align-items:center; gap:4px; padding:3px 9px; border-radius:20px; font-size:0.72rem; font-weight:700; white-space:nowrap; }
+        .summary-text { font-size:0.875rem; color:#475569; line-height:1.8; background:#fff; padding:16px; border-radius:10px; border:1px solid #e2e8f5; }
+
+        /* MOBILE CARDS */
         .mobile-cards { display:none; }
-        .call-card { border-bottom:1px solid #f1f5f9; padding:16px 20px; }
+        .call-card { border-bottom:1px solid #f1f5f9; padding:18px 20px; }
         .call-card:last-child { border-bottom:none; }
-        .call-card-top { display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:10px; }
+        .call-card-top { display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:12px; }
         .call-card-num { font-weight:700; color:#1a1535; font-size:0.9rem; }
         .call-card-date { font-size:0.72rem; color:#94a3b8; margin-top:2px; }
-        .call-card-client { font-size:0.7rem; color:#534AB7; font-weight:600; margin-top:2px; }
-        .call-card-actions { display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; }
-        .call-card-action-btn { display:inline-flex; align-items:center; gap:5px; padding:6px 10px; border-radius:8px; border:1px solid #e2e8f0; background:#f8fafc; cursor:pointer; font-size:0.75rem; font-weight:600; color:#475569; transition:all 0.15s; }
-        .call-card-action-btn:hover { border-color:#534AB7; background:#eff6ff; color:#534AB7; }
-        .call-card-action-btn.active { border-color:#534AB7; background:#eff6ff; color:#534AB7; }
-        .call-card-expand { margin-top:12px; background:#f8fbff; border-radius:10px; padding:14px; border:1px solid #e8edf8; }
-        .empty-state { text-align:center; padding:60px 20px; }
-        .empty-icon { width:56px; height:56px; border-radius:14px; background:linear-gradient(135deg,#eff6ff,#e0f2fe); display:flex; align-items:center; justify-content:center; font-size:1.6rem; margin:0 auto 14px; }
-        .empty-title { font-size:1.05rem; font-weight:800; color:#1a1535; margin-bottom:5px; }
+        .call-card-actions { display:flex; gap:6px; flex-wrap:wrap; }
+        .call-card-action-btn { display:inline-flex; align-items:center; gap:5px; padding:7px 12px; border-radius:8px; border:1px solid #e2e8f0; background:#f8fafc; cursor:pointer; font-size:0.75rem; font-weight:600; color:#475569; transition:all 0.15s; }
+        .call-card-action-btn:hover { border-color:#534AB7; background:#EEEDFE; color:#534AB7; }
+        .call-card-action-btn.active { border-color:#534AB7; background:#EEEDFE; color:#534AB7; }
+        .call-card-expand { margin-top:14px; background:#f8fbff; border-radius:12px; padding:16px; border:1px solid #CECBF6; }
+
+        /* EMPTY STATE */
+        .empty-state { text-align:center; padding:72px 20px; }
+        .empty-icon { width:64px; height:64px; border-radius:16px; background:linear-gradient(135deg,#EEEDFE,#CECBF6); display:flex; align-items:center; justify-content:center; font-size:1.8rem; margin:0 auto 16px; }
+        .empty-title { font-size:1.1rem; font-weight:800; color:#1a1535; margin-bottom:6px; }
         .empty-sub { font-size:0.84rem; color:#94a3b8; }
-        .overlay { display:none; position:fixed; inset:0; background:rgba(8,17,43,0.5); z-index:150; backdrop-filter:blur(2px); }
+
+        .overlay { display:none; position:fixed; inset:0; background:rgba(26,21,53,0.5); z-index:150; backdrop-filter:blur(2px); }
         .overlay.show { display:block; }
+
         @media (max-width:900px) {
           .mobile-topbar { display:flex; }
           .main { margin-left:0; padding:80px 16px 24px; }
           .stats-grid { grid-template-columns:repeat(2,1fr); gap:12px; }
-          .stat-card { padding:16px 14px; }
-          .stat-value { font-size:1.6rem; }
+          .stat-card { padding:18px 16px; }
+          .stat-value { font-size:1.7rem; }
           .topbar { flex-direction:column; gap:10px; margin-bottom:20px; }
-          .page-title { font-size:1.3rem; }
+          .page-title { font-size:1.4rem; }
           .desktop-table { display:none; }
           .mobile-cards { display:block; }
-          .table-hdr { padding:14px 16px; }
+          .table-hdr { padding:16px 18px; }
           .user-chip { display:none; }
           .client-selector-wrap { flex-direction:column; align-items:flex-start; gap:8px; }
         }
         @media (max-width:480px) {
           .stats-grid { grid-template-columns:repeat(2,1fr); gap:10px; }
-          .stat-value { font-size:1.45rem; }
           .main { padding:76px 12px 20px; }
         }
       `}</style>
@@ -247,34 +264,40 @@ export default function Dashboard() {
 
         <main className="main">
           <div className="topbar">
-            <div>
+            <div className="topbar-left">
+              <div className="page-eyebrow">AI Receptionist</div>
               <div className="page-title">Call Dashboard</div>
               <div className="page-sub">
                 {new Date().toLocaleDateString('en-AU', { timeZone: PERTH, weekday:'long', year:'numeric', month:'long', day:'numeric' })}
+                {!isAdmin && <span style={{marginLeft:'10px', color:'#7F77DD', fontWeight:'600'}}>· {clientName}</span>}
               </div>
-              <div className="client-tag">📋 {clientName}</div>
             </div>
             <div className="topbar-right">
-              {isAdmin && <div className="client-badge">⚡ Enterprise Admin</div>}
+              {isAdmin && <div style={{display:'inline-flex', alignItems:'center', gap:'6px', background:'#EEEDFE', border:'1px solid #CECBF6', borderRadius:'20px', padding:'6px 14px', fontSize:'0.72rem', fontWeight:'700', color:'#534AB7'}}>⚡ Enterprise Admin</div>}
               {user && <div className="user-chip">👤 {user.email}</div>}
-              <div className="live-badge"><div className="badge-blink" />LIVE MONITORING</div>
+              <div className="live-badge"><div className="badge-blink" />LIVE</div>
             </div>
           </div>
 
           {isAdmin && (
             <div className="client-selector-wrap">
-              <div className="client-selector-label">📋 Viewing:</div>
+              <div className="client-selector-label">Viewing</div>
               <select className="client-selector" value={selectedClient} onChange={e => handleClientChange(e.target.value)}>
-                <option value="all">All Clients (Combined)</option>
+                <option value="all">All Clients — Combined View</option>
                 {clients.map(c => <option key={c.id} value={c.id}>{c.business_name}</option>)}
               </select>
             </div>
           )}
 
           <div className="stats-grid">
-            {statCards.map(s => (
+            {[
+              { label: 'Total Calls', value: stats.total, unit: '', sub: 'All time', icon: '📞', c: 'c1' },
+              { label: 'Today', value: stats.today, unit: '', sub: new Date().toLocaleDateString('en-AU', { timeZone: PERTH }), icon: '📅', c: 'c2' },
+              { label: 'Avg Duration', value: stats.avgDuration, unit: 's', sub: 'Per call', icon: '⏱', c: 'c3' },
+              { label: 'Completed', value: stats.completed, unit: '', sub: 'Calls handled', icon: '✅', c: 'c4' },
+            ].map(s => (
               <div key={s.label} className={`stat-card ${s.c}`}>
-                <div className="stat-icon">{s.icon}</div>
+                <div className="stat-icon-wrap">{s.icon}</div>
                 <div className="stat-label">{s.label}</div>
                 <div className="stat-value">{s.value}<span className="stat-unit">{s.unit}</span></div>
                 <div className="stat-sub">{s.sub}</div>
@@ -284,15 +307,17 @@ export default function Dashboard() {
 
           <div className="table-card">
             <div className="table-hdr">
-              <div className="table-hdr-title">⚛ {clientName} — Calls</div>
-              <div className="table-count">{calls.length} records</div>
+              <div className="table-hdr-left">
+                <div className="table-hdr-title">Recent Calls</div>
+                <div className="table-count">{calls.length} records</div>
+              </div>
             </div>
 
             {calls.length === 0 ? (
               <div className="empty-state">
                 <div className="empty-icon">📭</div>
                 <div className="empty-title">No calls yet</div>
-                <div className="empty-sub">Once Mash handles calls, they'll appear here.</div>
+                <div className="empty-sub">Once Mash handles calls, they'll appear here in real time.</div>
               </div>
             ) : (
               <>
@@ -314,17 +339,20 @@ export default function Dashboard() {
                       return (
                         <>
                           <tr key={call.id}>
-                            <td className="date-col">{perthDate(call.created_at)}</td>
-                            <td className="caller-col"><span className="caller-num">{call.caller_number || 'Unknown'}</span></td>
-                            {isAdmin && selectedClient === 'all' && <td className="client-col">{callClientName}</td>}
-                            <td className="outcome-col">
+                            <td><span className="date-text">{perthDate(call.created_at)}</span></td>
+                            <td><span className="caller-num">{call.caller_number || 'Unknown'}</span></td>
+                            {isAdmin && selectedClient === 'all' && <td style={{fontSize:'0.78rem', color:'#64748b'}}>{callClientName}</td>}
+                            <td>
                               <span className="outcome-badge" style={{
                                 background: outcomeColor(call.call_outcome) + '15',
                                 color: outcomeColor(call.call_outcome),
                                 border: `1px solid ${outcomeColor(call.call_outcome)}30`
-                              }}>● {outcomeLabel(call.call_outcome)}</span>
+                              }}>
+                                <span style={{width:'6px', height:'6px', borderRadius:'50%', background: outcomeColor(call.call_outcome), display:'inline-block'}} />
+                                {outcomeLabel(call.call_outcome)}
+                              </span>
                             </td>
-                            <td className="actions-col">
+                            <td>
                               {call.recording_url && (
                                 <span className={`action-btn ${expanded[call.id] === 'recording' ? 'active' : ''}`} onClick={() => togglePanel(call.id, 'recording')} title="Play Recording">🎙</span>
                               )}
@@ -341,7 +369,7 @@ export default function Dashboard() {
                               <td colSpan={isAdmin && selectedClient === 'all' ? 5 : 4}>
                                 <div className="expand-inner">
                                   {expanded[call.id] === 'recording' && call.recording_url && (
-                                    <div className="expand-section">
+                                    <div>
                                       <div className="expand-label">🎙 Call Recording</div>
                                       <audio controls style={{ width:'100%', borderRadius:'8px', height:'36px', accentColor:'#534AB7' }}>
                                         <source src={call.recording_url} type="audio/wav" />
@@ -349,13 +377,13 @@ export default function Dashboard() {
                                     </div>
                                   )}
                                   {expanded[call.id] === 'summary' && call.call_summary && (
-                                    <div className="expand-section">
-                                      <div className="expand-label">⚛ AI Summary — Mash</div>
-                                      <p style={{ fontSize:'0.875rem', color:'#475569', lineHeight:'1.75' }}>{call.call_summary}</p>
+                                    <div>
+                                      <div className="expand-label">✨ AI Summary</div>
+                                      <div className="summary-text">{call.call_summary}</div>
                                     </div>
                                   )}
                                   {expanded[call.id] === 'transcript' && call.full_transcript && (
-                                    <div className="expand-section">
+                                    <div>
                                       <div className="expand-label">📋 Full Transcript</div>
                                       <div className="transcript-scroll">
                                         {call.full_transcript.split('\n').map((line, i) => {
@@ -363,7 +391,7 @@ export default function Dashboard() {
                                           const isUser = line.startsWith('User:')
                                           return line.trim() ? (
                                             <div key={i} className={`transcript-line ${isAI ? 'ai' : isUser ? 'user' : ''}`}>
-                                              {(isAI || isUser) && <span className="transcript-speaker">{isAI ? '⚛ Mash' : '👤 Caller'}</span>}
+                                              {(isAI || isUser) && <span className="transcript-speaker">{isAI ? '⚡ Mash' : '👤 Caller'}</span>}
                                               {line.replace('AI: ', '').replace('User: ', '')}
                                             </div>
                                           ) : null
@@ -392,20 +420,23 @@ export default function Dashboard() {
                           <div>
                             <div className="call-card-num">{call.caller_number || 'Unknown'}</div>
                             <div className="call-card-date">{perthDate(call.created_at)}</div>
-                            {callClientName && <div className="call-card-client">📋 {callClientName}</div>}
+                            {callClientName && <div style={{fontSize:'0.7rem', color:'#7F77DD', fontWeight:'600', marginTop:'2px'}}>📋 {callClientName}</div>}
                           </div>
                           <span className="outcome-badge" style={{
                             background: outcomeColor(call.call_outcome) + '15',
                             color: outcomeColor(call.call_outcome),
                             border: `1px solid ${outcomeColor(call.call_outcome)}30`
-                          }}>● {outcomeLabel(call.call_outcome)}</span>
+                          }}>
+                            <span style={{width:'6px', height:'6px', borderRadius:'50%', background: outcomeColor(call.call_outcome), display:'inline-block'}} />
+                            {outcomeLabel(call.call_outcome)}
+                          </span>
                         </div>
                         <div className="call-card-actions">
                           {call.recording_url && (
                             <span className={`call-card-action-btn ${expanded[call.id] === 'recording' ? 'active' : ''}`} onClick={() => togglePanel(call.id, 'recording')}>🎙 Recording</span>
                           )}
                           {call.call_summary && (
-                            <span className={`call-card-action-btn ${expanded[call.id] === 'summary' ? 'active' : ''}`} onClick={() => togglePanel(call.id, 'summary')}>📄 Summary</span>
+                            <span className={`call-card-action-btn ${expanded[call.id] === 'summary' ? 'active' : ''}`} onClick={() => togglePanel(call.id, 'summary')}>✨ Summary</span>
                           )}
                           {call.full_transcript && (
                             <span className={`call-card-action-btn ${expanded[call.id] === 'transcript' ? 'active' : ''}`} onClick={() => togglePanel(call.id, 'transcript')}>📋 Transcript</span>
@@ -415,7 +446,7 @@ export default function Dashboard() {
                           <div className="call-card-expand">
                             {expanded[call.id] === 'recording' && call.recording_url && (
                               <>
-                                <div className="expand-label">🎙 Call Recording</div>
+                                <div className="expand-label">🎙 Recording</div>
                                 <audio controls style={{ width:'100%', borderRadius:'6px', height:'32px' }}>
                                   <source src={call.recording_url} type="audio/wav" />
                                 </audio>
@@ -423,18 +454,18 @@ export default function Dashboard() {
                             )}
                             {expanded[call.id] === 'summary' && call.call_summary && (
                               <>
-                                <div className="expand-label">⚛ AI Summary</div>
+                                <div className="expand-label">✨ AI Summary</div>
                                 <p style={{ fontSize:'0.84rem', color:'#475569', lineHeight:'1.7' }}>{call.call_summary}</p>
                               </>
                             )}
                             {expanded[call.id] === 'transcript' && call.full_transcript && (
                               <>
-                                <div className="expand-label">📋 Full Transcript</div>
+                                <div className="expand-label">📋 Transcript</div>
                                 <div style={{ maxHeight:'200px', overflowY:'auto', marginTop:'6px' }}>
                                   {call.full_transcript.split('\n').map((line, i) => (
                                     line.trim() ? (
                                       <div key={i} className={`transcript-line ${line.startsWith('AI:') ? 'ai' : 'user'}`}>
-                                        <span className="transcript-speaker">{line.startsWith('AI:') ? '⚛ Mash' : '👤 Caller'}</span>
+                                        <span className="transcript-speaker">{line.startsWith('AI:') ? '⚡ Mash' : '👤 Caller'}</span>
                                         {line.replace('AI: ', '').replace('User: ', '')}
                                       </div>
                                     ) : null
