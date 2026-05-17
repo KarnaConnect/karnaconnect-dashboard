@@ -186,7 +186,7 @@ export default function Sidebar({ isAdmin, activePage, mobileOpen, onClose }) {
       {/* MOBILE BOTTOM NAV */}
       <div className="bottom-nav">
         <div className="bottom-nav-items">
-          {visibleNavItems.slice(0, 5).map(n => (
+          {visibleNavItems.slice(0, 4).map(n => (
             <div key={n.page} className={`bottom-nav-item ${activePage === n.page ? 'active' : ''}`}
               onClick={() => { if (n.action) n.action(); else if (n.href) window.location.href = n.href }}>
               <span className="bottom-nav-icon">{n.icon}</span>
