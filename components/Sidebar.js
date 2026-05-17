@@ -58,99 +58,90 @@ export default function Sidebar({ isAdmin, activePage, mobileOpen, onClose }) {
   }
 
   const navItems = [
-    { icon: '📞', label: 'Call Dashboard', page: 'dashboard', href: '/', show: true },
+    { icon: '📞', label: 'Calls', page: 'dashboard', href: '/', show: true },
     { icon: '👥', label: 'Clients', page: 'clients', href: '/clients', show: isAdmin },
     { icon: '📊', label: 'Analytics', page: 'analytics', href: '/analytics', show: true },
-    { icon: '💳', label: 'Usage & Billing', page: 'usage', href: '/usage', show: true },
-    { icon: '🔗', label: 'CRM Connect', page: 'crm', href: null, show: true, action: () => setShowCRM(true) },
+    { icon: '💳', label: 'Billing', page: 'usage', href: '/usage', show: true },
+    { icon: '🔗', label: 'CRM', page: 'crm', href: null, show: true, action: () => setShowCRM(true) },
     { icon: '⚙️', label: 'Settings', page: 'settings', href: '/settings', show: true },
   ]
+
+  const visibleNavItems = navItems.filter(n => n.show)
 
   return (
     <>
       <style>{`
+        /* DESKTOP SIDEBAR */
         .sidebar {
           width:240px; flex-shrink:0;
           background:linear-gradient(180deg,#1a1535 0%,#211a42 100%);
           display:flex; flex-direction:column;
           position:fixed; top:0; left:0; height:100vh;
-          z-index:200;
-          border-right:1px solid rgba(127,119,221,0.15);
+          z-index:200; border-right:1px solid rgba(127,119,221,0.15);
           transition:transform 0.3s ease;
         }
-        @media (max-width:900px) { .sidebar { transform:translateX(-100%); } }
-        .sidebar.mobile-open { transform:translateX(0) !important; }
+        @media (max-width:900px) { .sidebar { display:none; } }
         .sidebar-top { padding:24px 20px 18px; border-bottom:1px solid rgba(255,255,255,0.05); }
         .logo-row { display:flex; align-items:center; gap:10px; }
-        .logo-text { font-size:1.2rem; font-weight:800; color:#fff; letter-spacing:-0.3px; white-space:nowrap; }
+        .logo-text { font-size:1.2rem; font-weight:800; color:#fff; letter-spacing:-0.3px; }
         .logo-text span { color:#AFA9EC; }
         .logo-sub { font-size:0.62rem; color:#3C3489; text-transform:uppercase; letter-spacing:2px; margin-top:5px; padding-left:42px; }
-        .live-pill {
-          margin:14px 20px 0;
-          background:rgba(83,74,183,0.15);
-          border:1px solid rgba(127,119,221,0.25);
-          border-radius:8px; padding:7px 11px;
-          display:flex; align-items:center; gap:8px;
-        }
-        .live-dot {
-          width:7px; height:7px; border-radius:50%;
-          background:#AFA9EC; flex-shrink:0;
-          box-shadow:0 0 0 0 rgba(175,169,236,0.5);
-          animation:lp 2s infinite;
-        }
+        .live-pill { margin:14px 20px 0; background:rgba(83,74,183,0.15); border:1px solid rgba(127,119,221,0.25); border-radius:8px; padding:7px 11px; display:flex; align-items:center; gap:8px; }
+        .live-dot { width:7px; height:7px; border-radius:50%; background:#AFA9EC; flex-shrink:0; box-shadow:0 0 0 0 rgba(175,169,236,0.5); animation:lp 2s infinite; }
         @keyframes lp { 0%{box-shadow:0 0 0 0 rgba(175,169,236,0.5)} 70%{box-shadow:0 0 0 7px rgba(175,169,236,0)} 100%{box-shadow:0 0 0 0 rgba(175,169,236,0)} }
-        .live-label { font-size:0.72rem; color:#AFA9EC; font-weight:700; flex:1; white-space:nowrap; }
-        .live-clock { font-family:monospace; font-size:0.68rem; color:#534AB7; font-variant-numeric:tabular-nums; white-space:nowrap; }
+        .live-label { font-size:0.72rem; color:#AFA9EC; font-weight:700; flex:1; }
+        .live-clock { font-family:monospace; font-size:0.68rem; color:#534AB7; }
         .nav-wrap { padding:16px 10px; flex:1; overflow-y:auto; }
-        .nav-group-label { font-size:0.6rem; text-transform:uppercase; letter-spacing:2px; color:#3C3489; font-weight:700; padding:0 10px; margin:12px 0 6px; }
-        .nav-item {
-          display:flex; align-items:center; gap:9px; padding:9px 12px;
-          border-radius:9px; margin-bottom:2px; color:#534AB7;
-          font-size:0.83rem; font-weight:500; cursor:pointer; transition:all 0.18s;
-          position:relative; white-space:nowrap; overflow:hidden;
-        }
-        .nav-item.active {
-          background:linear-gradient(135deg,rgba(83,74,183,0.3),rgba(127,119,221,0.15));
-          color:#CECBF6; border:1px solid rgba(127,119,221,0.3);
-        }
-        .nav-item.active::before {
-          content:''; position:absolute; left:0; top:20%; bottom:20%;
-          width:3px; background:linear-gradient(180deg,#7F77DD,#AFA9EC);
-          border-radius:0 3px 3px 0;
-        }
+        .nav-item { display:flex; align-items:center; gap:9px; padding:10px 12px; border-radius:10px; margin-bottom:3px; color:#534AB7; font-size:0.83rem; font-weight:500; cursor:pointer; transition:all 0.18s; position:relative; }
+        .nav-item.active { background:rgba(83,74,183,0.25); color:#CECBF6; border:1px solid rgba(127,119,221,0.3); }
+        .nav-item.active::before { content:''; position:absolute; left:0; top:20%; bottom:20%; width:3px; background:linear-gradient(180deg,#7F77DD,#AFA9EC); border-radius:0 3px 3px 0; }
         .nav-item:hover:not(.active) { background:rgba(255,255,255,0.04); color:#AFA9EC; }
-        .nav-icon { font-size:0.95rem; width:17px; text-align:center; flex-shrink:0; }
-        .sidebar-foot { padding:14px 20px; border-top:1px solid rgba(255,255,255,0.04); font-size:0.68rem; color:#3C3489; line-height:1.8; }
-        .logout-btn {
-          width:100%; margin-top:8px; padding:8px 12px;
-          background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05);
-          border-radius:8px; color:#534AB7; font-size:0.78rem; font-weight:600;
-          cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif;
-          transition:all 0.2s; text-align:left; display:flex; align-items:center; gap:8px;
-        }
-        .logout-btn:hover { background:rgba(220,38,38,0.1); color:#ef4444; border-color:rgba(220,38,38,0.2); }
-        .modal-overlay { position:fixed; inset:0; background:rgba(26,21,53,0.7); z-index:500; display:flex; align-items:center; justify-content:center; padding:20px; backdrop-filter:blur(4px); }
-        .modal { background:#fff; border-radius:16px; width:100%; max-width:480px; overflow:hidden; box-shadow:0 24px 60px rgba(0,0,0,0.3); }
+        .nav-icon { font-size:1rem; width:20px; text-align:center; flex-shrink:0; }
+        .sidebar-foot { padding:14px 20px; border-top:1px solid rgba(255,255,255,0.04); font-size:0.68rem; color:#3C3489; }
+        .logout-btn { width:100%; margin-top:8px; padding:9px 12px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:8px; color:#534AB7; font-size:0.78rem; font-weight:600; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; transition:all 0.2s; text-align:left; display:flex; align-items:center; gap:8px; }
+        .logout-btn:hover { background:rgba(239,68,68,0.1); color:#ef4444; border-color:rgba(239,68,68,0.2); }
+
+        /* MOBILE TOP BAR */
+        .mobile-topbar { display:none; position:fixed; top:0; left:0; right:0; z-index:100; background:#fff; padding:14px 20px; align-items:center; justify-content:space-between; border-bottom:1px solid #f1f5f9; }
+        @media (max-width:900px) { .mobile-topbar { display:flex; } }
+        .mobile-topbar-logo { display:flex; align-items:center; gap:8px; }
+        .mobile-topbar-text { font-size:1.1rem; font-weight:800; color:#1a1535; }
+        .mobile-topbar-text span { color:#7F77DD; }
+
+        /* MOBILE BOTTOM NAV */
+        .bottom-nav { display:none; position:fixed; bottom:0; left:0; right:0; z-index:100; background:#fff; border-top:1px solid #f1f5f9; padding:8px 0 12px; }
+        @media (max-width:900px) { .bottom-nav { display:flex; } }
+        .bottom-nav-items { display:flex; width:100%; }
+        .bottom-nav-item { flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; padding:6px 4px; cursor:pointer; transition:all 0.15s; position:relative; }
+        .bottom-nav-icon { font-size:1.3rem; line-height:1; }
+        .bottom-nav-label { font-size:0.6rem; font-weight:600; color:#94a3b8; text-align:center; }
+        .bottom-nav-item.active .bottom-nav-label { color:#534AB7; }
+        .bottom-nav-item.active::before { content:''; position:absolute; top:0; left:20%; right:20%; height:2px; background:linear-gradient(90deg,#534AB7,#7F77DD); border-radius:0 0 2px 2px; }
+
+        /* CRM MODAL */
+        .modal-overlay { position:fixed; inset:0; background:rgba(26,21,53,0.6); z-index:500; display:flex; align-items:center; justify-content:center; padding:20px; backdrop-filter:blur(4px); }
+        .modal { background:#fff; border-radius:20px; width:100%; max-width:480px; overflow:hidden; box-shadow:0 24px 60px rgba(0,0,0,0.2); }
         .modal-hdr { background:linear-gradient(135deg,#1a1535,#211a42); padding:24px 28px; }
         .modal-title { font-size:1.1rem; font-weight:800; color:#fff; margin-bottom:4px; }
         .modal-sub { font-size:0.8rem; color:#534AB7; }
         .modal-body { padding:24px 28px; }
         .field-label { font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#64748b; margin-bottom:6px; display:block; }
-        .field { width:100%; padding:10px 14px; border-radius:8px; border:1.5px solid #e2e8f0; font-size:0.875rem; font-family:'Plus Jakarta Sans',sans-serif; color:#08112b; outline:none; margin-bottom:16px; transition:border-color 0.2s; }
+        .field { width:100%; padding:10px 14px; border-radius:8px; border:1.5px solid #e2e8f0; font-size:0.875rem; font-family:'Plus Jakarta Sans',sans-serif; color:#0f172a; outline:none; margin-bottom:16px; transition:border-color 0.2s; }
         .field:focus { border-color:#534AB7; }
         .checkbox-group { display:flex; flex-direction:column; gap:8px; margin-bottom:16px; }
         .checkbox-item { display:flex; align-items:center; gap:8px; font-size:0.875rem; color:#334155; cursor:pointer; }
         .checkbox-item input { accent-color:#534AB7; width:16px; height:16px; }
         .modal-footer { display:flex; gap:10px; padding:0 28px 24px; }
-        .btn-primary { flex:1; padding:11px; background:linear-gradient(135deg,#534AB7,#7F77DD); color:#fff; font-size:0.875rem; font-weight:700; border:none; border-radius:8px; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; }
-        .btn-secondary { padding:11px 20px; background:#f8fafc; color:#64748b; font-size:0.875rem; font-weight:600; border:1.5px solid #e2e8f0; border-radius:8px; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; }
+        .btn-primary { flex:1; padding:11px; background:linear-gradient(135deg,#534AB7,#7F77DD); color:#fff; font-size:0.875rem; font-weight:700; border:none; border-radius:10px; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; }
+        .btn-secondary { padding:11px 20px; background:#f8fafc; color:#64748b; font-size:0.875rem; font-weight:600; border:1.5px solid #e2e8f0; border-radius:10px; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; }
         .success-msg { text-align:center; padding:20px 0; }
         .success-icon { font-size:2.5rem; margin-bottom:12px; }
-        .success-title { font-size:1.1rem; font-weight:800; color:#08112b; margin-bottom:6px; }
+        .success-title { font-size:1.1rem; font-weight:800; color:#0f172a; margin-bottom:6px; }
         .success-sub { font-size:0.84rem; color:#94a3b8; }
       `}</style>
 
-      <div className={`sidebar ${mobileOpen ? 'mobile-open' : ''}`}>
+      {/* DESKTOP SIDEBAR */}
+      <div className="sidebar">
         <div className="sidebar-top">
           <div className="logo-row">
             <MashLogo size={34} />
@@ -158,7 +149,6 @@ export default function Sidebar({ isAdmin, activePage, mobileOpen, onClose }) {
           </div>
           <div className="logo-sub">{isAdmin ? 'Enterprise Admin' : 'AI Receptionist'}</div>
         </div>
-
         <div className="live-pill">
           <div className="live-dot" />
           <div className="live-label">Mash is live</div>
@@ -166,23 +156,14 @@ export default function Sidebar({ isAdmin, activePage, mobileOpen, onClose }) {
             {time.toLocaleTimeString('en-AU', { timeZone: PERTH, hour:'2-digit', minute:'2-digit', second:'2-digit' })}
           </div>
         </div>
-
         <nav className="nav-wrap">
-          <div className="nav-group-label">Main</div>
-          {navItems.filter(n => n.show).map(n => (
-            <div
-              key={n.page}
-              className={`nav-item ${activePage === n.page ? 'active' : ''}`}
-              onClick={() => {
-                if (n.action) n.action()
-                else if (n.href) window.location.href = n.href
-              }}
-            >
+          {visibleNavItems.map(n => (
+            <div key={n.page} className={`nav-item ${activePage === n.page ? 'active' : ''}`}
+              onClick={() => { if (n.action) n.action(); else if (n.href) window.location.href = n.href }}>
               <span className="nav-icon">{n.icon}</span>{n.label}
             </div>
           ))}
         </nav>
-
         <div className="sidebar-foot">
           <div style={{color:'#3C3489'}}>by KarnaConnect</div>
           <div style={{color:'#26215C', marginTop:'2px'}}>© 2026 Mash</div>
@@ -190,6 +171,32 @@ export default function Sidebar({ isAdmin, activePage, mobileOpen, onClose }) {
         </div>
       </div>
 
+      {/* MOBILE TOP BAR */}
+      <div className="mobile-topbar">
+        <div className="mobile-topbar-logo">
+          <MashLogo size={28} />
+          <div className="mobile-topbar-text">M<span>ash</span></div>
+        </div>
+        <div style={{display:'flex', alignItems:'center', gap:'8px'}}>
+          <div style={{width:'8px', height:'8px', borderRadius:'50%', background:'#10b981', boxShadow:'0 0 0 2px rgba(16,185,129,0.2)'}} />
+          <span style={{fontSize:'0.72rem', color:'#10b981', fontWeight:'700'}}>Live</span>
+        </div>
+      </div>
+
+      {/* MOBILE BOTTOM NAV */}
+      <div className="bottom-nav">
+        <div className="bottom-nav-items">
+          {visibleNavItems.slice(0, 5).map(n => (
+            <div key={n.page} className={`bottom-nav-item ${activePage === n.page ? 'active' : ''}`}
+              onClick={() => { if (n.action) n.action(); else if (n.href) window.location.href = n.href }}>
+              <span className="bottom-nav-icon">{n.icon}</span>
+              <span className="bottom-nav-label">{n.label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* CRM MODAL */}
       {showCRM && (
         <div className="modal-overlay" onClick={() => { setShowCRM(false); setCrmSent(false) }}>
           <div className="modal" onClick={e => e.stopPropagation()}>
@@ -206,7 +213,7 @@ export default function Sidebar({ isAdmin, activePage, mobileOpen, onClose }) {
                 </div>
               ) : (
                 <>
-                  <label className="field-label">Which CRM or system do you use?</label>
+                  <label className="field-label">Which CRM do you use?</label>
                   <select className="field" value={crmForm.crm} onChange={e => setCrmForm({...crmForm, crm: e.target.value})}>
                     <option value="">— Select your CRM —</option>
                     <option>HubSpot</option>
@@ -223,29 +230,18 @@ export default function Sidebar({ isAdmin, activePage, mobileOpen, onClose }) {
                   <div className="checkbox-group">
                     {['New caller details', 'Call summaries', 'Booking requests', 'Follow-up tasks', 'All call data'].map(opt => (
                       <label key={opt} className="checkbox-item">
-                        <input
-                          type="checkbox"
-                          checked={crmForm.sync.includes(opt)}
+                        <input type="checkbox" checked={crmForm.sync.includes(opt)}
                           onChange={e => {
-                            const updated = e.target.checked
-                              ? [...crmForm.sync, opt]
-                              : crmForm.sync.filter(s => s !== opt)
+                            const updated = e.target.checked ? [...crmForm.sync, opt] : crmForm.sync.filter(s => s !== opt)
                             setCrmForm({...crmForm, sync: updated})
-                          }}
-                        />
+                          }} />
                         {opt}
                       </label>
                     ))}
                   </div>
                   <label className="field-label">Additional notes (optional)</label>
-                  <textarea
-                    className="field"
-                    rows={3}
-                    placeholder="Any specific requirements..."
-                    value={crmForm.notes}
-                    onChange={e => setCrmForm({...crmForm, notes: e.target.value})}
-                    style={{resize:'none'}}
-                  />
+                  <textarea className="field" rows={3} placeholder="Any specific requirements..."
+                    value={crmForm.notes} onChange={e => setCrmForm({...crmForm, notes: e.target.value})} style={{resize:'none'}} />
                 </>
               )}
             </div>
