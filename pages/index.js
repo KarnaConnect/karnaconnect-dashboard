@@ -15,7 +15,7 @@ function isToday(ts) { return perthDateShort(ts) === perthDateShort(new Date()) 
 export default function Dashboard() {
   const [calls, setCalls] = useState([])
   const [expanded, setExpanded] = useState({})
-  const [stats, setStats] = useState({ total: 0, today: 0, avgDuration: 0, completed: 0 })
+  const [stats, setStats] = useState({ total: 0, today: 0, avgDuration: 0, completed: 0, totalDuration: 0 })
   const [mobileNav, setMobileNav] = useState(false)
   const [user, setUser] = useState(null)
   const [authLoading, setAuthLoading] = useState(true)
@@ -64,7 +64,8 @@ export default function Dashboard() {
       const durations = data.filter(c => c.call_duration).map(c => parseFloat(c.call_duration))
       const avg = durations.length ? Math.round(durations.reduce((a, b) => a + b, 0) / durations.length) : 0
       const completed = data.filter(c => c.call_outcome && c.call_outcome.includes('ended')).length
-      setStats({ total: data.length, today: todayCalls.length, avgDuration: avg, completed })
+      const totalDuration = data.filter(c => c.call_duration).reduce((sum, c) => sum + parseFloat(c.call_duration), 0)
+      setStats({ total: data.length, today: todayCalls.length, avgDuration: avg, completed, totalDuration })
     }
   }
 
@@ -102,7 +103,7 @@ export default function Dashboard() {
   if (authLoading) return (
     <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'#fff', fontFamily:'Plus Jakarta Sans,sans-serif' }}>
       <div style={{ textAlign:'center' }}>
-        <div style={{ width:'48px', height:'48px', border:'3px solid #EEEDFE', borderTopColor:'#534AB7', borderRadius:'50%', animation:'spin 0.8s linear infinite', margin:'0 auto 16px' }} />
+        <div style={{ width:'40px', height:'40px', border:'3px solid #EEEDFE', borderTopColor:'#534AB7', borderRadius:'50%', animation:'spin 0.8s linear infinite', margin:'0 auto 16px' }} />
         <div style={{ fontSize:'0.85rem', color:'#94a3b8', fontWeight:'500' }}>Loading...</div>
         <style>{`@keyframes spin { to { transform:rotate(360deg) } }`}</style>
       </div>
@@ -125,8 +126,8 @@ export default function Dashboard() {
         .hero-eyebrow { font-size:0.7rem; text-transform:uppercase; letter-spacing:2.5px; color:#7F77DD; font-weight:700; margin-bottom:8px; }
         .hero-title { font-size:1.7rem; font-weight:800; color:#fff; letter-spacing:-0.5px; margin-bottom:4px; }
         .hero-sub { font-size:0.82rem; color:#534AB7; }
-        .hero-right { display:flex; align-items:center; gap:10px; }
         .hero-row { display:flex; justify-content:space-between; align-items:flex-start; }
+        .hero-right { display:flex; align-items:center; gap:10px; flex-shrink:0; }
         .live-pill-hero { display:flex; align-items:center; gap:6px; background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.25); border-radius:20px; padding:6px 12px; }
         .live-dot-hero { width:6px; height:6px; border-radius:50%; background:#10b981; animation:lp 2s infinite; }
         @keyframes lp { 0%{box-shadow:0 0 0 0 rgba(16,185,129,0.5)} 70%{box-shadow:0 0 0 6px rgba(16,185,129,0)} 100%{box-shadow:0 0 0 0 rgba(16,185,129,0)} }
@@ -144,14 +145,14 @@ export default function Dashboard() {
 
         /* STATS */
         .stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:24px; }
-        .stat-card { background:#fff; border-radius:14px; padding:20px 18px; border:1px solid #f1f5f9; box-shadow:0 1px 3px rgba(0,0,0,0.04); transition:transform 0.2s, box-shadow 0.2s; cursor:default; }
+        .stat-card { background:#fff; border-radius:14px; padding:22px 18px; border:1px solid #f1f5f9; box-shadow:0 1px 3px rgba(0,0,0,0.04); transition:transform 0.2s, box-shadow 0.2s; }
         .stat-card:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,0,0,0.06); }
         .stat-icon { font-size:1.4rem; margin-bottom:12px; }
         .stat-label { font-size:0.68rem; text-transform:uppercase; letter-spacing:1.5px; color:#94a3b8; font-weight:700; margin-bottom:6px; }
         .stat-value { font-size:2.2rem; font-weight:800; color:#0f172a; line-height:1; letter-spacing:-1.5px; }
         .stat-unit { font-size:1rem; font-weight:500; color:#94a3b8; letter-spacing:0; }
         .stat-sub { font-size:0.72rem; color:#94a3b8; margin-top:6px; }
-        .stat-accent { height:3px; border-radius:999px; margin-top:14px; }
+        .stat-accent { height:3px; border-radius:999px; margin-top:16px; }
 
         /* CALLS CARD */
         .calls-card { background:#fff; border-radius:16px; border:1px solid #f1f5f9; box-shadow:0 1px 3px rgba(0,0,0,0.04); overflow:hidden; }
@@ -225,14 +226,11 @@ export default function Dashboard() {
         <Sidebar isAdmin={isAdmin} activePage="dashboard" mobileOpen={mobileNav} onClose={() => setMobileNav(false)} />
 
         <main className="main">
-          {/* HERO HEADER */}
           <div className="hero-header">
             <div className="hero-row">
               <div>
                 <div className="hero-eyebrow">AI Receptionist</div>
-                <div className="hero-title">
-                  {isAdmin ? 'Enterprise Dashboard' : clientName}
-                </div>
+                <div className="hero-title">{isAdmin ? 'Enterprise Dashboard' : clientName}</div>
                 <div className="hero-sub">
                   {new Date().toLocaleDateString('en-AU', { timeZone: PERTH, weekday:'long', year:'numeric', month:'long', day:'numeric' })}
                 </div>
@@ -259,20 +257,34 @@ export default function Dashboard() {
             )}
 
             <div className="stats-grid">
-              {[
-                { label: 'Total Calls', value: stats.total, unit: '', sub: 'All time', icon: '📞', accent: 'linear-gradient(90deg,#534AB7,#7F77DD)' },
-                { label: 'Today', value: stats.today, unit: '', sub: new Date().toLocaleDateString('en-AU', { timeZone: PERTH }), icon: '📅', accent: 'linear-gradient(90deg,#10b981,#34d399)' },
-                { label: 'Avg Duration', value: stats.avgDuration, unit: 's', sub: 'Per call', icon: '⏱', accent: 'linear-gradient(90deg,#f59e0b,#fbbf24)' },
-                { label: 'Completed', value: stats.completed, unit: '', sub: 'Handled', icon: '✅', accent: 'linear-gradient(90deg,#8b5cf6,#534AB7)' },
-              ].map(s => (
-                <div key={s.label} className="stat-card">
-                  <div className="stat-icon">{s.icon}</div>
-                  <div className="stat-label">{s.label}</div>
-                  <div className="stat-value">{s.value}<span className="stat-unit">{s.unit}</span></div>
-                  <div className="stat-sub">{s.sub}</div>
-                  <div className="stat-accent" style={{background: s.accent}} />
-                </div>
-              ))}
+              <div className="stat-card">
+                <div className="stat-icon">📞</div>
+                <div className="stat-label">Total Calls</div>
+                <div className="stat-value">{stats.total}</div>
+                <div className="stat-sub">All time · {stats.today} today</div>
+                <div className="stat-accent" style={{background:'linear-gradient(90deg,#534AB7,#7F77DD)'}} />
+              </div>
+              <div className="stat-card">
+                <div className="stat-icon">✅</div>
+                <div className="stat-label">Calls Handled</div>
+                <div className="stat-value">{stats.completed}</div>
+                <div className="stat-sub">{stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0}% answer rate</div>
+                <div className="stat-accent" style={{background:'linear-gradient(90deg,#10b981,#34d399)'}} />
+              </div>
+              <div className="stat-card">
+                <div className="stat-icon">⏱</div>
+                <div className="stat-label">Hours Saved</div>
+                <div className="stat-value">{stats.totalDuration > 0 ? (stats.totalDuration / 3600).toFixed(1) : '0'}</div>
+                <div className="stat-sub">Of staff phone time</div>
+                <div className="stat-accent" style={{background:'linear-gradient(90deg,#f59e0b,#fbbf24)'}} />
+              </div>
+              <div className="stat-card">
+                <div className="stat-icon">💰</div>
+                <div className="stat-label">Cost Saved</div>
+                <div className="stat-value">${stats.totalDuration > 0 ? Math.round((stats.totalDuration / 3600) * 35) : 0}</div>
+                <div className="stat-sub">Est. at $35/hr staff cost</div>
+                <div className="stat-accent" style={{background:'linear-gradient(90deg,#8b5cf6,#534AB7)'}} />
+              </div>
             </div>
 
             <div className="calls-card">
