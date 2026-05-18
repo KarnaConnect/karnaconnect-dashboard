@@ -100,6 +100,18 @@ export default function Dashboard() {
     return o
   }
 
+  const getCallIntent = (summary) => {
+    if (!summary) return null
+    const s = summary.toLowerCase()
+    if (s.includes('urgent') || s.includes('emergency') || s.includes('asap') || s.includes('immediately')) return { label: 'Urgent', icon: '🔴', color: '#ef4444' }
+    if (s.includes('quote') || s.includes('price') || s.includes('cost') || s.includes('how much') || s.includes('rate')) return { label: 'Quote', icon: '💰', color: '#10b981' }
+    if (s.includes('book') || s.includes('appointment') || s.includes('schedule') || s.includes('available') || s.includes('time')) return { label: 'Booking', icon: '📅', color: '#534AB7' }
+    if (s.includes('complaint') || s.includes('unhappy') || s.includes('problem') || s.includes('issue') || s.includes('wrong')) return { label: 'Complaint', icon: '⚠️', color: '#f59e0b' }
+    if (s.includes('order') || s.includes('purchase') || s.includes('buy') || s.includes('delivery')) return { label: 'Order', icon: '📦', color: '#8b5cf6' }
+    if (s.includes('follow') || s.includes('callback') || s.includes('call back') || s.includes('return')) return { label: 'Follow Up', icon: '🔄', color: '#06b6d4' }
+    return { label: 'Enquiry', icon: '❓', color: '#94a3b8' }
+  }
+
   if (authLoading) return (
     <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'#fff', fontFamily:'Plus Jakarta Sans,sans-serif' }}>
       <div style={{ textAlign:'center' }}>
@@ -119,8 +131,6 @@ export default function Dashboard() {
         body { font-family:'Plus Jakarta Sans',sans-serif; background:#f8f9fb; -webkit-font-smoothing:antialiased; }
         .layout { display:flex; min-height:100vh; }
         .main { margin-left:240px; flex:1; min-height:100vh; }
-
-        /* HERO HEADER */
         .hero-header { background:linear-gradient(135deg,#1a1535 0%,#2d1f5e 100%); padding:32px 36px 28px; position:relative; overflow:hidden; }
         .hero-header::after { content:''; position:absolute; right:-60px; top:-60px; width:300px; height:300px; background:radial-gradient(circle,rgba(127,119,221,0.15) 0%,transparent 70%); pointer-events:none; }
         .hero-eyebrow { font-size:0.7rem; text-transform:uppercase; letter-spacing:2.5px; color:#7F77DD; font-weight:700; margin-bottom:8px; }
@@ -133,17 +143,11 @@ export default function Dashboard() {
         @keyframes lp { 0%{box-shadow:0 0 0 0 rgba(16,185,129,0.5)} 70%{box-shadow:0 0 0 6px rgba(16,185,129,0)} 100%{box-shadow:0 0 0 0 rgba(16,185,129,0)} }
         .live-text-hero { font-size:0.72rem; color:#10b981; font-weight:700; }
         .admin-pill { display:flex; align-items:center; gap:6px; background:rgba(175,169,236,0.15); border:1px solid rgba(175,169,236,0.25); border-radius:20px; padding:6px 12px; font-size:0.72rem; color:#AFA9EC; font-weight:700; }
-
-        /* CONTENT */
         .content { padding:28px 36px 100px; }
-
-        /* CLIENT SELECTOR */
         .client-selector-wrap { display:flex; align-items:center; gap:12px; background:#fff; border-radius:12px; padding:14px 18px; border:1px solid #f1f5f9; box-shadow:0 1px 3px rgba(0,0,0,0.04); margin-bottom:24px; }
         .client-selector-label { font-size:0.72rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:1.5px; white-space:nowrap; }
         .client-selector { flex:1; padding:7px 12px; border-radius:8px; border:1.5px solid #f1f5f9; font-size:0.875rem; font-family:'Plus Jakarta Sans',sans-serif; color:#0f172a; font-weight:600; background:#f8f9fb; cursor:pointer; outline:none; transition:border-color 0.2s; }
         .client-selector:focus { border-color:#534AB7; }
-
-        /* STATS */
         .stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:24px; }
         .stat-card { background:#fff; border-radius:14px; padding:22px 18px; border:1px solid #f1f5f9; box-shadow:0 1px 3px rgba(0,0,0,0.04); transition:transform 0.2s, box-shadow 0.2s; }
         .stat-card:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,0,0,0.06); }
@@ -153,14 +157,10 @@ export default function Dashboard() {
         .stat-unit { font-size:1rem; font-weight:500; color:#94a3b8; letter-spacing:0; }
         .stat-sub { font-size:0.72rem; color:#94a3b8; margin-top:6px; }
         .stat-accent { height:3px; border-radius:999px; margin-top:16px; }
-
-        /* CALLS CARD */
         .calls-card { background:#fff; border-radius:16px; border:1px solid #f1f5f9; box-shadow:0 1px 3px rgba(0,0,0,0.04); overflow:hidden; }
         .calls-hdr { padding:20px 24px; border-bottom:1px solid #f8f9fb; display:flex; justify-content:space-between; align-items:center; }
         .calls-hdr-title { font-size:1rem; font-weight:700; color:#0f172a; }
         .calls-hdr-count { font-size:0.72rem; color:#7F77DD; background:#f5f3ff; padding:3px 10px; border-radius:20px; font-weight:700; }
-
-        /* TABLE */
         .calls-table { width:100%; border-collapse:collapse; }
         .calls-table thead tr { background:#f8f9fb; }
         .calls-table th { padding:11px 20px; text-align:left; font-size:0.65rem; text-transform:uppercase; letter-spacing:1.5px; color:#94a3b8; font-weight:700; border-bottom:1px solid #f1f5f9; }
@@ -170,11 +170,10 @@ export default function Dashboard() {
         .caller-num { font-weight:700; color:#0f172a; font-family:'JetBrains Mono',monospace; font-size:0.82rem; }
         .date-text { color:#94a3b8; font-size:0.78rem; }
         .outcome-badge { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:20px; font-size:0.72rem; font-weight:700; }
+        .intent-badge { display:inline-flex; align-items:center; gap:4px; margin-left:6px; padding:3px 8px; border-radius:20px; font-size:0.68rem; font-weight:700; }
         .action-btn { display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:8px; border:1px solid #f1f5f9; background:#f8f9fb; cursor:pointer; font-size:0.85rem; transition:all 0.15s; margin-right:3px; }
         .action-btn:hover { border-color:#534AB7; background:#f5f3ff; }
         .action-btn.active { border-color:#534AB7; background:#f5f3ff; }
-
-        /* EXPAND */
         .expand-row td { padding:0 !important; border-bottom:1px solid #f1f5f9 !important; }
         .expand-inner { padding:20px 24px; background:#fafafa; }
         .expand-label { font-size:0.65rem; text-transform:uppercase; letter-spacing:1.5px; color:#7F77DD; font-weight:700; margin-bottom:10px; }
@@ -186,23 +185,19 @@ export default function Dashboard() {
         .transcript-line.ai .transcript-speaker { color:#534AB7; }
         .transcript-line.user .transcript-speaker { color:#10b981; }
         .summary-box { background:#fff; border:1px solid #f1f5f9; border-radius:10px; padding:16px; font-size:0.875rem; color:#475569; line-height:1.8; }
-
-        /* MOBILE CARDS */
         .mobile-cards { display:none; }
         .call-card { padding:16px 20px; border-bottom:1px solid #f8f9fb; }
         .call-card:last-child { border-bottom:none; }
         .call-card-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px; }
+        .call-card-badges { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:10px; }
         .call-card-actions { display:flex; gap:6px; flex-wrap:wrap; }
         .call-card-btn { display:inline-flex; align-items:center; gap:5px; padding:6px 11px; border-radius:8px; border:1px solid #f1f5f9; background:#f8f9fb; cursor:pointer; font-size:0.74rem; font-weight:600; color:#64748b; transition:all 0.15s; }
         .call-card-btn:hover, .call-card-btn.active { border-color:#534AB7; background:#f5f3ff; color:#534AB7; }
         .call-card-expand { margin-top:12px; background:#fafafa; border-radius:10px; padding:14px; border:1px solid #f1f5f9; }
-
-        /* EMPTY */
         .empty-state { text-align:center; padding:64px 20px; }
         .empty-icon { font-size:2.5rem; margin-bottom:14px; }
         .empty-title { font-size:1rem; font-weight:700; color:#0f172a; margin-bottom:6px; }
         .empty-sub { font-size:0.84rem; color:#94a3b8; }
-
         @media (max-width:900px) {
           .main { margin-left:0; }
           .hero-header { padding:80px 20px 24px; }
@@ -307,7 +302,7 @@ export default function Dashboard() {
                         <th>Date & Time</th>
                         <th>Caller</th>
                         {isAdmin && selectedClient === 'all' && <th>Client</th>}
-                        <th>Outcome</th>
+                        <th>Outcome & Intent</th>
                         <th>Actions</th>
                       </tr>
                     </thead>
@@ -316,6 +311,7 @@ export default function Dashboard() {
                         const callClientName = isAdmin && selectedClient === 'all'
                           ? (clients.find(c => c.id === call.client_id)?.business_name || 'KarnaConnect')
                           : null
+                        const intent = getCallIntent(call.call_summary)
                         return (
                           <>
                             <tr key={call.id}>
@@ -331,6 +327,15 @@ export default function Dashboard() {
                                   <span style={{width:'5px', height:'5px', borderRadius:'50%', background: outcomeColor(call.call_outcome), display:'inline-block', flexShrink:0}} />
                                   {outcomeLabel(call.call_outcome)}
                                 </span>
+                                {intent && (
+                                  <span className="intent-badge" style={{
+                                    background: intent.color + '12',
+                                    color: intent.color,
+                                    border: `1px solid ${intent.color}25`
+                                  }}>
+                                    {intent.icon} {intent.label}
+                                  </span>
+                                )}
                               </td>
                               <td>
                                 {call.recording_url && <span className={`action-btn ${expanded[call.id] === 'recording' ? 'active' : ''}`} onClick={() => togglePanel(call.id, 'recording')} title="Recording">🎙</span>}
@@ -388,6 +393,7 @@ export default function Dashboard() {
                       const callClientName = isAdmin && selectedClient === 'all'
                         ? (clients.find(c => c.id === call.client_id)?.business_name || 'KarnaConnect')
                         : null
+                      const intent = getCallIntent(call.call_summary)
                       return (
                         <div key={call.id} className="call-card">
                           <div className="call-card-top">
@@ -404,6 +410,20 @@ export default function Dashboard() {
                               <span style={{width:'5px', height:'5px', borderRadius:'50%', background: outcomeColor(call.call_outcome), display:'inline-block'}} />
                               {outcomeLabel(call.call_outcome)}
                             </span>
+                          </div>
+                          <div className="call-card-badges">
+                            {intent && (
+                              <span style={{
+                                display:'inline-flex', alignItems:'center', gap:'4px',
+                                padding:'3px 9px', borderRadius:'20px',
+                                fontSize:'0.68rem', fontWeight:'700',
+                                background: intent.color + '12',
+                                color: intent.color,
+                                border: `1px solid ${intent.color}25`
+                              }}>
+                                {intent.icon} {intent.label}
+                              </span>
+                            )}
                           </div>
                           <div className="call-card-actions">
                             {call.recording_url && <span className={`call-card-btn ${expanded[call.id] === 'recording' ? 'active' : ''}`} onClick={() => togglePanel(call.id, 'recording')}>🎙 Recording</span>}
