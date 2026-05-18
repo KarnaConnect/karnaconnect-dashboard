@@ -101,17 +101,54 @@ export default function Sidebar({ isAdmin, activePage, mobileOpen, onClose }) {
         .mobile-topbar-text { font-size:1.1rem; font-weight:800; color:#1a1535; }
         .mobile-topbar-text span { color:#7F77DD; }
 
-        /* MOBILE BOTTOM NAV */
-        .bottom-nav { display:none; position:fixed; bottom:0; left:0; right:0; z-index:100; background:#fff; border-top:1px solid #f1f5f9; padding:6px 0 16px; box-shadow:0 -1px 3px rgba(0,0,0,0.04); }
-        @media (max-width:900px) { .bottom-nav { display:flex; } }
-        .bottom-nav-items { display:flex; width:100%; }
-        .bottom-nav-item { flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; padding:6px 4px; cursor:pointer; transition:all 0.15s; position:relative; }
-        .bottom-nav-icon { font-size:1.3rem; line-height:1; }
-        .bottom-nav-label { font-size:0.58rem; font-weight:600; color:#94a3b8; text-align:center; }
-        .bottom-nav-item.active .bottom-nav-label { color:#534AB7; }
-        .bottom-nav-item.active .bottom-nav-icon { transform:scale(1.1); }
-        .bottom-nav-item.active::before { content:''; position:absolute; top:0; left:25%; right:25%; height:2px; background:linear-gradient(90deg,#534AB7,#7F77DD); border-radius:0 0 2px 2px; }
-
+        {/* MOBILE BOTTOM NAV */}
+      <div className="bottom-nav">
+        <div className="bottom-nav-items">
+          {bottomNavItems.map(n => (
+            <div key={n.page} className={`bottom-nav-item ${activePage === n.page ? 'active' : ''}`}
+              onClick={() => { if (n.action) n.action(); else if (n.href) window.location.href = n.href }}>
+              <span className="bottom-nav-icon">
+                {n.page === 'dashboard' && (
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.68A2 2 0 012 .18h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92z"/>
+                  </svg>
+                )}
+                {n.page === 'clients' && (
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>
+                  </svg>
+                )}
+                {n.page === 'analytics' && (
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+                  </svg>
+                )}
+                {n.page === 'usage' && (
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/>
+                  </svg>
+                )}
+                {n.page === 'crm' && (
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>
+                  </svg>
+                )}
+              </span>
+              <span className="bottom-nav-label">{n.label}</span>
+            </div>
+          ))}
+          <div className={`bottom-nav-item ${activePage === 'settings' ? 'active' : ''}`}
+            onClick={() => window.location.href = '/settings'}>
+            <span className="bottom-nav-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/>
+                <path d="M12 2v2M12 20v2M2 12h2M20 12h2"/>
+              </svg>
+            </span>
+            <span className="bottom-nav-label">Settings</span>
+          </div>
+        </div>
+      </div>
         /* CRM MODAL */
         .modal-overlay { position:fixed; inset:0; background:rgba(26,21,53,0.6); z-index:500; display:flex; align-items:center; justify-content:center; padding:20px; backdrop-filter:blur(4px); }
         .modal { background:#fff; border-radius:20px; width:100%; max-width:480px; overflow:hidden; box-shadow:0 24px 60px rgba(0,0,0,0.2); }
