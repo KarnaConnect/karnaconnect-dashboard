@@ -348,7 +348,7 @@ export default function Onboarding() {
         </div>
 
         <div style={{ textAlign: 'center', fontSize: '0.75rem', color: '#94a3b8', marginTop: '8px' }}>
-          Already have an account? <a href="https://mashboard.karnaconnect.com.au/login" style={{ color: '#534AB7', fontWeight: '600' }}>Sign in here</a>
+          Already have an account? <a href="https://dashboard.mashai.com.au/login" style={{ color: '#534AB7', fontWeight: '600' }}>Sign in here</a>
         </div>
       </div>
     </>
