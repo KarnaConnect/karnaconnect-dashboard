@@ -2,58 +2,6 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import Sidebar from '../components/Sidebar'
 
-async function initNotifications(userId, clientId) {
-  try {
-    const { initializeApp, getApps } = await import('firebase/app')
-    const { getMessaging, getToken, onMessage } = await import('firebase/messaging')
-    
-
-    const firebaseConfig = {
-      apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-      authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-      storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-      messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-      appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
-    }
-
-    const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
-    const messaging = getMessaging(app)
-
-    const permission = await Notification.requestPermission()
-    if (permission !== 'granted') {
-      console.log('Notification permission denied')
-      return
-    }
-
-    const token = await getToken(messaging, {
-      vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY
-    })
-
-    if (token) {
-      await fetch('/api/save-token', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, userId, clientId })
-      })
-      console.log('Notification token saved')
-    }
-
-    onMessage(messaging, (payload) => {
-      console.log('Foreground message:', payload)
-      if (payload.notification) {
-        new Notification(payload.notification.title, {
-          body: payload.notification.body,
-          icon: '/icons/icon-192.png'
-        })
-      }
-    })
-
-  } catch (err) {
-    console.log('Notification setup error:', err.message)
-  }
-}
-
 const supabase = createClient(
   'https://enxajqahxnbgxwigvsjz.supabase.co',
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVueGFqcWFoeG5iZ3h3aWd2c2p6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyNTA0OTQsImV4cCI6MjA5MjgyNjQ5NH0.VRzz5We66I620lBKz2WXQgmD02BJbCyqs0eW4YN8IGw'
@@ -75,7 +23,14 @@ export default function Dashboard() {
   const [clients, setClients] = useState([])
   const [selectedClient, setSelectedClient] = useState('all')
   const [clientName, setClientName] = useState('All Clients')
-  
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) { window.location.href = '/login' }
+      else { setUser(session.user); setAuthLoading(false) }
+    })
+  }, [])
+
   useEffect(() => {
     if (!user) return
     async function init() {
@@ -88,18 +43,12 @@ export default function Dashboard() {
           .from('clients').select('id, business_name').eq('active', true)
         if (allClients) setClients(allClients)
         await fetchCalls(null)
-        if (typeof window !== 'undefined' && 'Notification' in window) {
-          initNotifications(user.id, null)
-        }
       } else if (userClient && userClient.client_id) {
         setIsAdmin(false)
         const { data: cd } = await supabase.from('clients').select('business_name')
           .eq('id', userClient.client_id).single()
         if (cd) setClientName(cd.business_name)
         await fetchCalls(userClient.client_id)
-        if (typeof window !== 'undefined' && 'Notification' in window) {
-          initNotifications(user.id, userClient.client_id)
-        }
       }
     }
     init()
@@ -154,12 +103,12 @@ export default function Dashboard() {
   const getCallIntent = (summary) => {
     if (!summary) return null
     const s = summary.toLowerCase()
-    if (s.includes('urgent') || s.includes('emergency') || s.includes('asap') || s.includes('immediately')) return { label: 'Urgent', icon: '🔴', color: '#ef4444' }
-    if (s.includes('quote') || s.includes('price') || s.includes('cost') || s.includes('how much') || s.includes('rate')) return { label: 'Quote', icon: '💰', color: '#10b981' }
-    if (s.includes('book') || s.includes('appointment') || s.includes('schedule') || s.includes('available') || s.includes('time')) return { label: 'Booking', icon: '📅', color: '#534AB7' }
-    if (s.includes('complaint') || s.includes('unhappy') || s.includes('problem') || s.includes('issue') || s.includes('wrong')) return { label: 'Complaint', icon: '⚠️', color: '#f59e0b' }
-    if (s.includes('order') || s.includes('purchase') || s.includes('buy') || s.includes('delivery')) return { label: 'Order', icon: '📦', color: '#8b5cf6' }
-    if (s.includes('follow') || s.includes('callback') || s.includes('call back') || s.includes('return')) return { label: 'Follow Up', icon: '🔄', color: '#06b6d4' }
+    if (s.includes('urgent') || s.includes('emergency') || s.includes('asap')) return { label: 'Urgent', icon: '🔴', color: '#ef4444' }
+    if (s.includes('quote') || s.includes('price') || s.includes('cost') || s.includes('how much')) return { label: 'Quote', icon: '💰', color: '#10b981' }
+    if (s.includes('book') || s.includes('appointment') || s.includes('schedule')) return { label: 'Booking', icon: '📅', color: '#534AB7' }
+    if (s.includes('complaint') || s.includes('unhappy') || s.includes('problem') || s.includes('issue')) return { label: 'Complaint', icon: '⚠️', color: '#f59e0b' }
+    if (s.includes('order') || s.includes('purchase') || s.includes('buy')) return { label: 'Order', icon: '📦', color: '#8b5cf6' }
+    if (s.includes('follow') || s.includes('callback') || s.includes('call back')) return { label: 'Follow Up', icon: '🔄', color: '#06b6d4' }
     return { label: 'Enquiry', icon: '❓', color: '#94a3b8' }
   }
 
