@@ -287,20 +287,6 @@ export default function Dashboard() {
                   <div className="live-dot-hero" />
                   <span className="live-text-hero">Live</span>
                 </div>
-                {showNotifBtn && (
-                  <button
-                    onClick={() => initNotifications(user?.id, null)}
-                    style={{
-                      display:'flex', alignItems:'center', gap:'6px',
-                      background:'rgba(255,255,255,0.1)', border:'1px solid rgba(255,255,255,0.2)',
-                      borderRadius:'20px', padding:'6px 12px', cursor:'pointer',
-                      fontSize:'0.72rem', color:'#fff', fontWeight:'600',
-                      fontFamily:'Plus Jakarta Sans,sans-serif'
-                    }}
-                  >
-                    🔔 Enable Alerts
-                  </button>
-                )}
               </div>
             </div>
           </div>
