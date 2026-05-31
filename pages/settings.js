@@ -18,16 +18,13 @@ export default function Settings() {
   const [clientData, setClientData] = useState(null)
   const [clients, setClients] = useState([])
   const [plans, setPlans] = useState([])
-
   const [contactName, setContactName] = useState('')
   const [contactEmail, setContactEmail] = useState('')
   const [contactPhone, setContactPhone] = useState('')
   const [saveMsg, setSaveMsg] = useState('')
-
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [passwordMsg, setPasswordMsg] = useState('')
-
   const [selectedClientId, setSelectedClientId] = useState('')
   const [selectedPlanId, setSelectedPlanId] = useState('')
   const [resetMsg, setResetMsg] = useState('')
@@ -46,7 +43,6 @@ export default function Settings() {
       const { data: userClient } = await supabase
         .from('user_clients').select('client_id, role')
         .eq('user_id', user.id).single()
-
       if (userClient && userClient.role === 'admin') {
         setIsAdmin(true)
         const { data: allClients } = await supabase
@@ -318,8 +314,8 @@ export default function Settings() {
             </>
           )}
 
-         {/* NOTIFICATIONS */}
-          <div className="card" style={{marginTop:'0'}}>
+          {/* NOTIFICATIONS */}
+          <div className="card">
             <div className="card-title">Push Notifications</div>
             <div className="card-sub">Get notified on your phone when Mash handles a call</div>
             <button
@@ -331,15 +327,18 @@ export default function Settings() {
                 }
                 const permission = await Notification.requestPermission()
                 if (permission === 'granted') {
-                  alert('✅ Notifications enabled!')
+                  alert('Notifications enabled!')
                 } else {
-                  alert('❌ Notifications blocked. Please enable in your phone settings.')
+                  alert('Notifications blocked. Please enable in your phone settings.')
                 }
               }}
             >
               🔔 Enable Push Notifications
             </button>
           </div>
+
+          {/* MOBILE ONLY LOGOUT */}
+          <div className="mobile-only-logout" style={{marginTop:'20px', paddingTop:'20px', borderTop:'1px solid #f1f5f9'}}>
             <button
               style={{padding:'12px 24px', background:'none', border:'1.5px solid #fecaca', borderRadius:'10px', color:'#ef4444', fontSize:'0.875rem', fontWeight:'700', cursor:'pointer', fontFamily:'Plus Jakarta Sans,sans-serif'}}
               onClick={async () => { await supabase.auth.signOut(); window.location.href = '/login' }}
