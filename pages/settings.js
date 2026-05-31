@@ -318,8 +318,28 @@ export default function Settings() {
             </>
           )}
 
-          {/* MOBILE ONLY LOGOUT */}
-          <div className="mobile-only-logout" style={{marginTop:'20px', paddingTop:'20px', borderTop:'1px solid #f1f5f9'}}>
+         {/* NOTIFICATIONS */}
+          <div className="card" style={{marginTop:'0'}}>
+            <div className="card-title">Push Notifications</div>
+            <div className="card-sub">Get notified on your phone when Mash handles a call</div>
+            <button
+              className="btn-primary"
+              onClick={async () => {
+                if (!('Notification' in window)) {
+                  alert('Notifications not supported on this device')
+                  return
+                }
+                const permission = await Notification.requestPermission()
+                if (permission === 'granted') {
+                  alert('✅ Notifications enabled!')
+                } else {
+                  alert('❌ Notifications blocked. Please enable in your phone settings.')
+                }
+              }}
+            >
+              🔔 Enable Push Notifications
+            </button>
+          </div>
             <button
               style={{padding:'12px 24px', background:'none', border:'1.5px solid #fecaca', borderRadius:'10px', color:'#ef4444', fontSize:'0.875rem', fontWeight:'700', cursor:'pointer', fontFamily:'Plus Jakarta Sans,sans-serif'}}
               onClick={async () => { await supabase.auth.signOut(); window.location.href = '/login' }}
