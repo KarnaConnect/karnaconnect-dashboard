@@ -77,13 +77,6 @@ export default function Dashboard() {
   const [clientName, setClientName] = useState('All Clients')
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) { window.location.href = '/login' }
-      else { setUser(session.user); setAuthLoading(false) }
-    })
-  }, [])
-
-  useEffect(() => {
     if (typeof window !== 'undefined' && 'Notification' in window) {
       setShowNotifBtn(Notification.permission !== 'granted')
     }
