@@ -75,12 +75,6 @@ export default function Dashboard() {
   const [clients, setClients] = useState([])
   const [selectedClient, setSelectedClient] = useState('all')
   const [clientName, setClientName] = useState('All Clients')
-
-  useEffect(() => {
-    if (typeof window !== 'undefined' && 'Notification' in window) {
-      setShowNotifBtn(Notification.permission !== 'granted')
-    }
-  }, [])
   
   useEffect(() => {
     if (!user) return
