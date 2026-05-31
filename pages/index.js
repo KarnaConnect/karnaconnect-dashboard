@@ -94,6 +94,9 @@ export default function Dashboard() {
           .from('clients').select('id, business_name').eq('active', true)
         if (allClients) setClients(allClients)
         await fetchCalls(null)
+        if (typeof window !== 'undefined' && 'Notification' in window) {
+          initNotifications(user.id, null)
+        }
       } else if (userClient && userClient.client_id) {
         setIsAdmin(false)
         const { data: cd } = await supabase.from('clients').select('business_name')
@@ -102,10 +105,6 @@ export default function Dashboard() {
         await fetchCalls(userClient.client_id)
         if (typeof window !== 'undefined' && 'Notification' in window) {
           initNotifications(user.id, userClient.client_id)
-        }
-      } else if (userClient && userClient.role === 'admin') {
-        if (typeof window !== 'undefined' && 'Notification' in window) {
-          initNotifications(user.id, null)
         }
       }
     }
