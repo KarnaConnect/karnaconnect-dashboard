@@ -6,6 +6,7 @@ async function initNotifications(userId, clientId) {
   try {
     const { initializeApp, getApps } = await import('firebase/app')
     const { getMessaging, getToken, onMessage } = await import('firebase/messaging')
+    
 
     const firebaseConfig = {
       apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -82,6 +83,12 @@ export default function Dashboard() {
     })
   }, [])
 
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      setShowNotifBtn(Notification.permission !== 'granted')
+    }
+  }, [])
+  
   useEffect(() => {
     if (!user) return
     async function init() {
@@ -293,7 +300,7 @@ export default function Dashboard() {
                   <div className="live-dot-hero" />
                   <span className="live-text-hero">Live</span>
                 </div>
-                {typeof window !== 'undefined' && 'Notification' in window && Notification.permission !== 'granted' && (
+                {showNotifBtn && (
                   <button
                     onClick={() => initNotifications(user?.id, null)}
                     style={{
