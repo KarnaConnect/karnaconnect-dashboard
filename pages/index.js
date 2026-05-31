@@ -2,6 +2,57 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import Sidebar from '../components/Sidebar'
 
+async function initNotifications(userId, clientId) {
+  try {
+    const { initializeApp, getApps } = await import('firebase/app')
+    const { getMessaging, getToken, onMessage } = await import('firebase/messaging')
+
+    const firebaseConfig = {
+      apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+      authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+      storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+      messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+      appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
+    }
+
+    const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
+    const messaging = getMessaging(app)
+
+    const permission = await Notification.requestPermission()
+    if (permission !== 'granted') {
+      console.log('Notification permission denied')
+      return
+    }
+
+    const token = await getToken(messaging, {
+      vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY
+    })
+
+    if (token) {
+      await fetch('/api/save-token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, userId, clientId })
+      })
+      console.log('Notification token saved')
+    }
+
+    onMessage(messaging, (payload) => {
+      console.log('Foreground message:', payload)
+      if (payload.notification) {
+        new Notification(payload.notification.title, {
+          body: payload.notification.body,
+          icon: '/icons/icon-192.png'
+        })
+      }
+    })
+
+  } catch (err) {
+    console.log('Notification setup error:', err.message)
+  }
+}
+
 const supabase = createClient(
   'https://enxajqahxnbgxwigvsjz.supabase.co',
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVueGFqcWFoeG5iZ3h3aWd2c2p6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyNTA0OTQsImV4cCI6MjA5MjgyNjQ5NH0.VRzz5We66I620lBKz2WXQgmD02BJbCyqs0eW4YN8IGw'
@@ -49,6 +100,13 @@ export default function Dashboard() {
           .eq('id', userClient.client_id).single()
         if (cd) setClientName(cd.business_name)
         await fetchCalls(userClient.client_id)
+        if (typeof window !== 'undefined' && 'Notification' in window) {
+          initNotifications(user.id, userClient.client_id)
+        }
+      } else if (userClient && userClient.role === 'admin') {
+        if (typeof window !== 'undefined' && 'Notification' in window) {
+          initNotifications(user.id, null)
+        }
       }
     }
     init()
