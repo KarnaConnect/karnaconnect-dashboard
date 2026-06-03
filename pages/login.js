@@ -29,6 +29,9 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [mode, setMode] = useState('login') // 'login' or 'forgot'
+  const [resetMsg, setResetMsg] = useState('')
+  const [resetLoading, setResetLoading] = useState(false)
 
   async function handleLogin() {
     setLoading(true)
@@ -40,6 +43,24 @@ export default function Login() {
     } else {
       window.location.href = '/'
     }
+  }
+
+  async function handleForgotPassword() {
+    if (!email) {
+      setError('Please enter your email address.')
+      return
+    }
+    setResetLoading(true)
+    setError('')
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: 'https://dashboard.mashai.com.au/reset-password'
+    })
+    if (error) {
+      setError(error.message)
+    } else {
+      setResetMsg('✅ Password reset email sent! Check your inbox.')
+    }
+    setResetLoading(false)
   }
 
   return (
@@ -57,11 +78,14 @@ export default function Login() {
           background:#fff; border-radius:20px; padding:44px 40px;
           width:100%; max-width:420px;
           box-shadow:0 24px 60px rgba(26,21,53,0.4);
+          margin:20px;
         }
         .logo-row { display:flex; align-items:center; gap:12px; margin-bottom:6px; }
         .logo-text { font-size:1.4rem; font-weight:800; color:#1a1535; letter-spacing:-0.3px; }
         .logo-text span { color:#7F77DD; }
         .subtitle { font-size:0.8rem; color:#94a3b8; margin-bottom:32px; padding-left:56px; }
+        .page-title { font-size:1.1rem; font-weight:700; color:#1a1535; margin-bottom:6px; }
+        .page-sub { font-size:0.82rem; color:#94a3b8; margin-bottom:28px; }
         .field-label {
           font-size:0.75rem; font-weight:700; text-transform:uppercase;
           letter-spacing:1px; color:#64748b; margin-bottom:6px; display:block;
@@ -79,6 +103,11 @@ export default function Login() {
           color:#dc2626; font-size:0.8rem; padding:10px 12px;
           border-radius:8px; margin-bottom:16px;
         }
+        .success {
+          background:#f0fdf4; border:1px solid #bbf7d0;
+          color:#16a34a; font-size:0.8rem; padding:10px 12px;
+          border-radius:8px; margin-bottom:16px;
+        }
         .btn {
           width:100%; padding:13px;
           background:linear-gradient(135deg,#534AB7,#7F77DD);
@@ -90,11 +119,25 @@ export default function Login() {
         }
         .btn:hover { opacity:0.9; }
         .btn:disabled { opacity:0.6; cursor:not-allowed; }
+        .forgot-link {
+          display:block; text-align:right; font-size:0.78rem;
+          color:#534AB7; font-weight:600; cursor:pointer;
+          margin-top:-8px; margin-bottom:20px;
+          text-decoration:none;
+        }
+        .forgot-link:hover { color:#7F77DD; }
+        .back-link {
+          display:block; text-align:center; font-size:0.78rem;
+          color:#534AB7; font-weight:600; cursor:pointer;
+          margin-top:16px;
+        }
+        .back-link:hover { color:#7F77DD; }
         .footer-text {
           text-align:center; font-size:0.72rem;
           color:#94a3b8; margin-top:20px;
         }
         .footer-text span { color:#AFA9EC; font-weight:600; }
+        .divider { height:1px; background:#f1f5f9; margin:20px 0; }
       `}</style>
 
       <div className="card">
@@ -102,33 +145,67 @@ export default function Login() {
           <MashLogo size={44} />
           <div className="logo-text">M<span>ash</span></div>
         </div>
-        <div className="subtitle">AI Business · by KarnaConnect</div>
+        <div className="subtitle">AI Receptionist · by KarnaConnect</div>
 
-        <label className="field-label">Email</label>
-        <input
-          className="field"
-          type="email"
-          placeholder="you@yourbusiness.com"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && handleLogin()}
-        />
+        {mode === 'login' ? (
+          <>
+            <label className="field-label">Email</label>
+            <input
+              className="field"
+              type="email"
+              placeholder="you@yourbusiness.com"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleLogin()}
+            />
 
-        <label className="field-label">Password</label>
-        <input
-          className="field"
-          type="password"
-          placeholder="••••••••"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && handleLogin()}
-        />
+            <label className="field-label">Password</label>
+            <input
+              className="field"
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleLogin()}
+            />
 
-        {error && <div className="error">⚠ {error}</div>}
+            <span className="forgot-link" onClick={() => { setMode('forgot'); setError(''); }}>
+              Forgot password?
+            </span>
 
-        <button className="btn" onClick={handleLogin} disabled={loading}>
-          {loading ? 'Signing in...' : 'Sign In →'}
-        </button>
+            {error && <div className="error">⚠ {error}</div>}
+
+            <button className="btn" onClick={handleLogin} disabled={loading}>
+              {loading ? 'Signing in...' : 'Sign In →'}
+            </button>
+          </>
+        ) : (
+          <>
+            <div className="page-title">Reset Password</div>
+            <div className="page-sub">Enter your email and we'll send you a reset link.</div>
+
+            <label className="field-label">Email</label>
+            <input
+              className="field"
+              type="email"
+              placeholder="you@yourbusiness.com"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleForgotPassword()}
+            />
+
+            {error && <div className="error">⚠ {error}</div>}
+            {resetMsg && <div className="success">{resetMsg}</div>}
+
+            <button className="btn" onClick={handleForgotPassword} disabled={resetLoading || !!resetMsg}>
+              {resetLoading ? 'Sending...' : 'Send Reset Link →'}
+            </button>
+
+            <span className="back-link" onClick={() => { setMode('login'); setError(''); setResetMsg(''); }}>
+              ← Back to Sign In
+            </span>
+          </>
+        )}
 
         <div className="footer-text">
           <span>Mash</span> · Powered by KarnaConnect · AU
