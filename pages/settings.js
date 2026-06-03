@@ -29,12 +29,19 @@ export default function Settings() {
   const [selectedPlanId, setSelectedPlanId] = useState('')
   const [resetMsg, setResetMsg] = useState('')
   const [planMsg, setPlanMsg] = useState('')
+  const [notifEnabled, setNotifEnabled] = useState(false)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) { window.location.href = '/login' }
       else { setUser(session.user); setAuthLoading(false) }
     })
+  }, [])
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      setNotifEnabled(Notification.permission === 'granted')
+    }
   }, [])
 
   useEffect(() => {
@@ -136,6 +143,49 @@ export default function Settings() {
     a.click()
   }
 
+  async function handleNotifToggle() {
+    try {
+      const { initializeApp, getApps } = await import('firebase/app')
+      const { getMessaging, getToken } = await import('firebase/messaging')
+      const firebaseConfig = {
+        apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+        authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+        projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+        storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+        messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+        appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
+      }
+      const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
+      const messaging = getMessaging(app)
+
+      if (!notifEnabled) {
+        const permission = await Notification.requestPermission()
+        if (permission !== 'granted') {
+          alert('Please enable notifications in your device settings first.')
+          return
+        }
+        const token = await getToken(messaging, { vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY })
+        if (token) {
+          const clientResult = await supabase.from('user_clients').select('client_id').eq('user_id', user.id).single()
+          await fetch('/api/save-token', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token, userId: user.id, clientId: isAdmin ? null : clientResult.data?.client_id, isAdmin })
+          })
+          setNotifEnabled(true)
+        }
+      } else {
+        const token = await getToken(messaging, { vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY })
+        if (token) {
+          await supabase.from('device_tokens').delete().eq('token', token).eq('user_id', user.id)
+          setNotifEnabled(false)
+        }
+      }
+    } catch (err) {
+      console.error('Notification toggle error:', err)
+    }
+  }
+
   if (authLoading) return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8f9fb', fontFamily: 'Plus Jakarta Sans, sans-serif', fontSize: '0.9rem', color: '#94a3b8' }}>
       Loading...
@@ -182,6 +232,8 @@ export default function Settings() {
         .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
         .client-row { display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid #f8f9fb; font-size:0.875rem; }
         .client-row:last-child { border-bottom:none; }
+        .toggle { width:52px; height:28px; border-radius:14px; cursor:pointer; position:relative; transition:background 0.3s; flex-shrink:0; border:none; padding:0; }
+        .toggle-knob { position:absolute; top:3px; width:22px; height:22px; border-radius:50%; background:#fff; transition:left 0.3s; box-shadow:0 1px 4px rgba(0,0,0,0.15); }
         .mobile-only-logout { display:none; }
         @media (max-width:900px) {
           .mobile-topbar { display:flex; }
@@ -316,91 +368,21 @@ export default function Settings() {
 
           {/* NOTIFICATIONS */}
           <div className="card">
-            <div className="card-title">Push Notifications</div>
-            <div className="card-sub">Get notified on your phone when Mash handles a call</div>
-            <div style={{display:'flex', gap:'10px', flexWrap:'wrap'}}>
+            <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+              <div>
+                <div className="card-title" style={{marginBottom:'4px'}}>Push Notifications</div>
+                <div style={{fontSize:'0.82rem', color:'#94a3b8'}}>Get notified when Mash handles a call</div>
+              </div>
               <button
-                className="btn-primary"
-                onClick={async () => {
-                  if (!('Notification' in window)) {
-                    alert('Notifications not supported on this device')
-                    return
-                  }
-                  const permission = await Notification.requestPermission()
-                  if (permission === 'granted') {
-                    try {
-                      const { initializeApp, getApps } = await import('firebase/app')
-                      const { getMessaging, getToken } = await import('firebase/messaging')
-                      const firebaseConfig = {
-                        apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-                        authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-                        projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-                        storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-                        messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-                        appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
-                      }
-                      const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
-                      const messaging = getMessaging(app)
-                      const token = await getToken(messaging, {
-                        vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY
-                      })
-                      if (token) {
-                        const clientResult = await supabase.from('user_clients').select('client_id').eq('user_id', user.id).single()
-                        await fetch('/api/save-token', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ 
-                            token, 
-                            userId: user.id, 
-                            clientId: isAdmin ? null : clientResult.data?.client_id,
-                            isAdmin 
-                          })
-                        })
-                        alert('✅ Notifications enabled!')
-                      }
-                    } catch (err) {
-                      console.error('Notification setup error:', err)
-                      alert('❌ Error: ' + err.message)
-                    }
-                  } else {
-                    alert('❌ Notifications blocked. Please enable in your phone settings.')
-                  }
-                }}
+                className="toggle"
+                onClick={handleNotifToggle}
+                style={{background: notifEnabled ? 'linear-gradient(135deg,#534AB7,#7F77DD)' : '#e2e8f0'}}
               >
-                🔔 Enable Notifications
-              </button>
-              <button
-                className="btn-secondary"
-                onClick={async () => {
-                  try {
-                    const { initializeApp, getApps } = await import('firebase/app')
-                    const { getMessaging, getToken } = await import('firebase/messaging')
-                    const firebaseConfig = {
-                      apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-                      authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-                      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-                      storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-                      messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-                      appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
-                    }
-                    const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
-                    const messaging = getMessaging(app)
-                    const token = await getToken(messaging, {
-                      vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY
-                    })
-                    if (token) {
-                      await supabase.from('device_tokens').delete().eq('token', token).eq('user_id', user.id)
-                      alert('🔕 Notifications disabled!')
-                    }
-                  } catch (err) {
-                    alert('❌ Error disabling: ' + err.message)
-                  }
-                }}
-              >
-                🔕 Disable Notifications
+                <div className="toggle-knob" style={{left: notifEnabled ? '27px' : '3px'}} />
               </button>
             </div>
           </div>
+
           {/* MOBILE ONLY LOGOUT */}
           <div className="mobile-only-logout" style={{marginTop:'20px', paddingTop:'20px', borderTop:'1px solid #f1f5f9'}}>
             <button
