@@ -318,15 +318,60 @@ export default function Settings() {
           <div className="card">
             <div className="card-title">Push Notifications</div>
             <div className="card-sub">Get notified on your phone when Mash handles a call</div>
-            <button
-              className="btn-primary"
-              onClick={async () => {
-                if (!('Notification' in window)) {
-                  alert('Notifications not supported on this device')
-                  return
-                }
-                const permission = await Notification.requestPermission()
-                if (permission === 'granted') {
+            <div style={{display:'flex', gap:'10px', flexWrap:'wrap'}}>
+              <button
+                className="btn-primary"
+                onClick={async () => {
+                  if (!('Notification' in window)) {
+                    alert('Notifications not supported on this device')
+                    return
+                  }
+                  const permission = await Notification.requestPermission()
+                  if (permission === 'granted') {
+                    try {
+                      const { initializeApp, getApps } = await import('firebase/app')
+                      const { getMessaging, getToken } = await import('firebase/messaging')
+                      const firebaseConfig = {
+                        apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+                        authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+                        projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+                        storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+                        messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+                        appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
+                      }
+                      const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
+                      const messaging = getMessaging(app)
+                      const token = await getToken(messaging, {
+                        vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY
+                      })
+                      if (token) {
+                        const clientResult = await supabase.from('user_clients').select('client_id').eq('user_id', user.id).single()
+                        await fetch('/api/save-token', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ 
+                            token, 
+                            userId: user.id, 
+                            clientId: isAdmin ? null : clientResult.data?.client_id,
+                            isAdmin 
+                          })
+                        })
+                        alert('✅ Notifications enabled!')
+                      }
+                    } catch (err) {
+                      console.error('Notification setup error:', err)
+                      alert('❌ Error: ' + err.message)
+                    }
+                  } else {
+                    alert('❌ Notifications blocked. Please enable in your phone settings.')
+                  }
+                }}
+              >
+                🔔 Enable Notifications
+              </button>
+              <button
+                className="btn-secondary"
+                onClick={async () => {
                   try {
                     const { initializeApp, getApps } = await import('firebase/app')
                     const { getMessaging, getToken } = await import('firebase/messaging')
@@ -344,31 +389,18 @@ export default function Settings() {
                       vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY
                     })
                     if (token) {
-                      await fetch('/api/save-token', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ 
-                          token, 
-                          userId: user.id, 
-                          clientId: isAdmin ? null : (await supabase.from('user_clients').select('client_id').eq('user_id', user.id).single()).data?.client_id,
-                          isAdmin 
-                        })
-                      })
-                      alert('✅ Notifications enabled!')
+                      await supabase.from('device_tokens').delete().eq('token', token).eq('user_id', user.id)
+                      alert('🔕 Notifications disabled!')
                     }
                   } catch (err) {
-                    console.error('Notification setup error:', err)
-                    alert('❌ Error setting up notifications: ' + err.message)
+                    alert('❌ Error disabling: ' + err.message)
                   }
-                } else {
-                  alert('❌ Notifications blocked. Please enable in your phone settings.')
-                }
-              }}
-            >
-              🔔 Enable Push Notifications
-            </button>
+                }}
+              >
+                🔕 Disable Notifications
+              </button>
+            </div>
           </div>
-
           {/* MOBILE ONLY LOGOUT */}
           <div className="mobile-only-logout" style={{marginTop:'20px', paddingTop:'20px', borderTop:'1px solid #f1f5f9'}}>
             <button
