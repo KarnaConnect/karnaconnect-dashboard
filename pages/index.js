@@ -23,6 +23,7 @@ export default function Dashboard() {
   const [clients, setClients] = useState([])
   const [selectedClient, setSelectedClient] = useState('all')
   const [clientName, setClientName] = useState('All Clients')
+  const [clientStartDate, setClientStartDate] = useState(null)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -45,16 +46,19 @@ export default function Dashboard() {
         await fetchCalls(null)
       } else if (userClient && userClient.client_id) {
         setIsAdmin(false)
-        const { data: cd } = await supabase.from('clients').select('business_name')
+        const { data: cd } = await supabase.from('clients').select('business_name, created_at, billing_start_date')
           .eq('id', userClient.client_id).single()
-        if (cd) setClientName(cd.business_name)
-        await fetchCalls(userClient.client_id)
+        if (cd) {
+          setClientName(cd.business_name)
+          setClientStartDate(cd.billing_start_date || cd.created_at)
+        }
+        await fetchCalls(userClient.client_id, cd?.billing_start_date || cd?.created_at)
       }
     }
     init()
   }, [user])
 
-  async function fetchCalls(clientId) {
+  async function fetchCalls(clientId, startDate) {
     let query = supabase.from('calls').select('*').order('created_at', { ascending: false })
     if (clientId) query = query.eq('client_id', clientId)
     const { data } = await query
@@ -67,7 +71,9 @@ export default function Dashboard() {
       const totalDuration = data.filter(c => c.call_duration).reduce((sum, c) => sum + parseFloat(c.call_duration), 0)
       const now = new Date()
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
-      const hoursActive = (now - startOfMonth) / 3600000
+      const clientStart = startDate ? new Date(startDate) : null
+      const countFrom = clientStart && clientStart > startOfMonth ? clientStart : startOfMonth
+      const hoursActive = (now - countFrom) / 3600000
       setStats({ total: data.length, today: todayCalls.length, avgDuration: avg, completed, totalDuration, hoursActive })
     }
   }
@@ -75,11 +81,15 @@ export default function Dashboard() {
   async function handleClientChange(clientId) {
     setSelectedClient(clientId)
     setExpanded({})
-    if (clientId === 'all') { setClientName('All Clients'); await fetchCalls(null) }
+    if (clientId === 'all') { setClientName('All Clients'); setClientStartDate(null); await fetchCalls(null, null) }
     else {
-      const client = clients.find(c => c.id === clientId)
-      if (client) setClientName(client.business_name)
-      await fetchCalls(clientId)
+      const { data: cd } = await supabase.from('clients').select('business_name, created_at, billing_start_date').eq('id', clientId).single()
+      if (cd) {
+        setClientName(cd.business_name)
+        const start = cd.billing_start_date || cd.created_at
+        setClientStartDate(start)
+        await fetchCalls(clientId, start)
+      }
     }
   }
 
