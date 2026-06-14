@@ -26,6 +26,11 @@ export default function Dashboard() {
   const [clientStartDate, setClientStartDate] = useState(null)
 
   useEffect(() => {
+    const hash = window.location.hash
+    if (hash && (hash.includes('type=invite') || hash.includes('type=recovery'))) {
+      window.location.href = '/reset-password' + hash
+      return
+    }
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) { window.location.href = '/login' }
       else { setUser(session.user); setAuthLoading(false) }
