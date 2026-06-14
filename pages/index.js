@@ -290,7 +290,7 @@ export default function Dashboard() {
                 <div className="stat-icon">💰</div>
                 <div className="stat-label">Cost Saved</div>
                 <div className="stat-value">${stats.hoursActive > 0 ? Math.round(stats.hoursActive * 8) : 0}</div>
-                <div className="stat-sub">Est. at $8/hr offshore call centre rate (24/7)</div>
+                <div className="stat-sub">Est. equivalent cost of a 24/7 call centre service</div>
                 <div className="stat-accent" style={{background:'linear-gradient(90deg,#8b5cf6,#534AB7)'}} />
               </div>
             </div>
