@@ -65,8 +65,9 @@ export default function Dashboard() {
       const avg = durations.length ? Math.round(durations.reduce((a, b) => a + b, 0) / durations.length) : 0
       const completed = data.filter(c => c.call_outcome && c.call_outcome.includes('ended')).length
       const totalDuration = data.filter(c => c.call_duration).reduce((sum, c) => sum + parseFloat(c.call_duration), 0)
-      const earliest = data.length ? new Date(data[data.length - 1].created_at) : null
-      const hoursActive = earliest ? (Date.now() - earliest.getTime()) / 3600000 : 0
+      const now = new Date()
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+      const hoursActive = (now - startOfMonth) / 3600000
       setStats({ total: data.length, today: todayCalls.length, avgDuration: avg, completed, totalDuration, hoursActive })
     }
   }
@@ -279,7 +280,7 @@ export default function Dashboard() {
                 <div className="stat-icon">💰</div>
                 <div className="stat-label">Cost Saved</div>
                 <div className="stat-value">${stats.hoursActive > 0 ? Math.round(stats.hoursActive * 25) : 0}</div>
-                <div className="stat-sub">Est. at $25/hr call centre rate (24/7)</div>
+                <div className="stat-sub">Est. at $25/hr call centre rate this month</div>
                 <div className="stat-accent" style={{background:'linear-gradient(90deg,#8b5cf6,#534AB7)'}} />
               </div>
             </div>
