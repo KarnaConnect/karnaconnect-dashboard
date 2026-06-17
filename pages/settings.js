@@ -30,6 +30,9 @@ export default function Settings() {
   const [resetMsg, setResetMsg] = useState('')
   const [planMsg, setPlanMsg] = useState('')
   const [notifEnabled, setNotifEnabled] = useState(false)
+  const [digestFrequency, setDigestFrequency] = useState(null)
+  const [digestMsg, setDigestMsg] = useState('')
+  const [clientId, setClientId] = useState(null)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -58,14 +61,16 @@ export default function Settings() {
         const { data: allPlans } = await supabase.from('plans').select('*')
         if (allPlans) setPlans(allPlans)
       } else if (userClient && userClient.client_id) {
+        setClientId(userClient.client_id)
         const { data: cd } = await supabase.from('clients')
-          .select('business_name, contact_name, contact_email, phone_number')
+          .select('business_name, contact_name, contact_email, phone_number, digest_frequency')
           .eq('id', userClient.client_id).single()
         if (cd) {
           setClientData(cd)
           setContactName(cd.contact_name || '')
           setContactEmail(cd.contact_email || '')
           setContactPhone(cd.phone_number || '')
+          setDigestFrequency(cd.digest_frequency || null)
         }
       }
     }
@@ -116,6 +121,15 @@ export default function Settings() {
       .update({ plan_id: selectedPlanId }).eq('id', selectedClientId)
     setPlanMsg(error ? '❌ Error updating plan.' : '✅ Plan updated successfully.')
     setTimeout(() => setPlanMsg(''), 3000)
+  }
+
+  async function handleDigestChange(freq) {
+    const newFreq = digestFrequency === freq ? null : freq
+    setDigestFrequency(newFreq)
+    if (!clientId) return
+    const { error } = await supabase.from('clients').update({ digest_frequency: newFreq }).eq('id', clientId)
+    setDigestMsg(error ? '❌ Error saving preference.' : '✅ Digest preference saved.')
+    setTimeout(() => setDigestMsg(''), 3000)
   }
 
   async function handleExportData() {
@@ -382,6 +396,38 @@ export default function Settings() {
               </button>
             </div>
           </div>
+
+          {/* EMAIL DIGEST */}
+          {!isAdmin && (
+            <div className="card">
+              <div className="card-title" style={{marginBottom:'4px'}}>Email Digest</div>
+              <div style={{fontSize:'0.82rem', color:'#94a3b8', marginBottom:'20px'}}>
+                Receive a summary of your call activity by email
+              </div>
+              <div style={{display:'flex', gap:'10px', flexWrap:'wrap'}}>
+                {[
+                  { id: null, label: '🔕 Off', sub: 'No digest emails' },
+                  { id: 'daily', label: '📅 Daily', sub: 'Every morning at 8am' },
+                  { id: 'weekly', label: '📊 Weekly', sub: 'Every Monday morning' }
+                ].map(opt => (
+                  <div
+                    key={String(opt.id)}
+                    onClick={() => handleDigestChange(opt.id)}
+                    style={{
+                      flex:'1', minWidth:'120px', padding:'14px 16px', borderRadius:'10px', cursor:'pointer',
+                      border: digestFrequency === opt.id ? '2px solid #534AB7' : '1.5px solid #f1f5f9',
+                      background: digestFrequency === opt.id ? '#f5f3ff' : '#f8f9fb',
+                      transition:'all 0.15s'
+                    }}
+                  >
+                    <div style={{fontWeight:'700', fontSize:'0.875rem', color: digestFrequency === opt.id ? '#534AB7' : '#0f172a', marginBottom:'3px'}}>{opt.label}</div>
+                    <div style={{fontSize:'0.72rem', color:'#94a3b8'}}>{opt.sub}</div>
+                  </div>
+                ))}
+              </div>
+              {digestMsg && <div className="msg" style={{marginTop:'12px'}}>{digestMsg}</div>}
+            </div>
+          )}
 
           {/* MOBILE ONLY LOGOUT */}
           <div className="mobile-only-logout" style={{marginTop:'20px', paddingTop:'20px', borderTop:'1px solid #f1f5f9'}}>
