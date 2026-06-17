@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import Sidebar from '../components/Sidebar'
 
@@ -24,6 +24,11 @@ export default function Dashboard() {
   const [selectedClient, setSelectedClient] = useState('all')
   const [clientName, setClientName] = useState('All Clients')
   const [clientStartDate, setClientStartDate] = useState(null)
+  const [pullRefreshing, setPullRefreshing] = useState(false)
+  const [pullDistance, setPullDistance] = useState(0)
+  const currentClientIdRef = useRef(null)
+  const currentStartDateRef = useRef(null)
+  const touchStartY = useRef(null)
 
   useEffect(() => {
     const hash = window.location.hash
@@ -62,6 +67,40 @@ export default function Dashboard() {
     }
     init()
   }, [user])
+
+  // Keep refs in sync for real-time callback
+  useEffect(() => { currentClientIdRef.current = selectedClient === 'all' ? null : selectedClient }, [selectedClient])
+  useEffect(() => { currentStartDateRef.current = clientStartDate }, [clientStartDate])
+
+  // Real-time subscription
+  useEffect(() => {
+    if (!user) return
+    const channel = supabase.channel('calls-realtime')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'calls' }, () => {
+        fetchCalls(currentClientIdRef.current, currentStartDateRef.current)
+      })
+      .subscribe()
+    return () => { supabase.removeChannel(channel) }
+  }, [user])
+
+  // Pull-to-refresh handlers
+  function handleTouchStart(e) {
+    if (window.scrollY === 0) touchStartY.current = e.touches[0].clientY
+  }
+  function handleTouchMove(e) {
+    if (touchStartY.current === null) return
+    const dist = e.touches[0].clientY - touchStartY.current
+    if (dist > 0 && dist < 100) setPullDistance(dist)
+  }
+  async function handleTouchEnd() {
+    if (pullDistance > 60) {
+      setPullRefreshing(true)
+      await fetchCalls(currentClientIdRef.current, currentStartDateRef.current)
+      setPullRefreshing(false)
+    }
+    setPullDistance(0)
+    touchStartY.current = null
+  }
 
   async function fetchCalls(clientId, startDate) {
     let query = supabase.from('calls').select('*').order('created_at', { ascending: false })
@@ -235,7 +274,27 @@ export default function Dashboard() {
         }
       `}</style>
 
-      <div className="layout">
+      <div className="layout" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
+        {/* Pull-to-refresh indicator */}
+        {(pullDistance > 10 || pullRefreshing) && (
+          <div style={{
+            position:'fixed', top:0, left:0, right:0, zIndex:999,
+            display:'flex', alignItems:'center', justifyContent:'center',
+            padding:'12px', background:'rgba(83,74,183,0.95)', transition:'transform 0.2s',
+            transform: `translateY(${pullRefreshing ? 0 : Math.min(pullDistance - 10, 50)}px)`
+          }}>
+            <div style={{
+              width:'18px', height:'18px', border:'2px solid rgba(255,255,255,0.4)',
+              borderTopColor:'#fff', borderRadius:'50%',
+              animation: pullRefreshing ? 'spin 0.8s linear infinite' : 'none',
+              marginRight:'8px'
+            }} />
+            <span style={{ color:'#fff', fontSize:'0.8rem', fontWeight:'600' }}>
+              {pullRefreshing ? 'Refreshing...' : pullDistance > 60 ? 'Release to refresh' : 'Pull to refresh'}
+            </span>
+          </div>
+        )}
+
         <Sidebar isAdmin={isAdmin} activePage="dashboard" mobileOpen={mobileNav} onClose={() => setMobileNav(false)} />
 
         <main className="main">
