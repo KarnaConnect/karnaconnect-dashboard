@@ -26,6 +26,7 @@ export default function Dashboard() {
   const [clientStartDate, setClientStartDate] = useState(null)
   const [pullRefreshing, setPullRefreshing] = useState(false)
   const [pullDistance, setPullDistance] = useState(0)
+  const [callerHistory, setCallerHistory] = useState(null)
   const currentClientIdRef = useRef(null)
   const currentStartDateRef = useRef(null)
   const touchStartY = useRef(null)
@@ -141,6 +142,12 @@ export default function Dashboard() {
     setExpanded(prev => ({ ...prev, [callId]: prev[callId] === panel ? null : panel }))
   }
 
+  function openCallerHistory(number) {
+    if (!number) return
+    const history = calls.filter(c => c.caller_number === number).sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+    setCallerHistory({ number, calls: history })
+  }
+
   const outcomeColor = (o) => {
     if (!o) return '#94a3b8'
     if (o.includes('ended')) return '#10b981'
@@ -242,6 +249,19 @@ export default function Dashboard() {
         .transcript-line.ai .transcript-speaker { color:#534AB7; }
         .transcript-line.user .transcript-speaker { color:#10b981; }
         .summary-box { background:#fff; border:1px solid #f1f5f9; border-radius:10px; padding:16px; font-size:0.875rem; color:#475569; line-height:1.8; }
+        .caller-num { cursor:pointer; transition:color 0.15s; }
+        .caller-num:hover { color:#534AB7; text-decoration:underline; }
+        .history-overlay { position:fixed; inset:0; background:rgba(15,23,42,0.4); z-index:200; backdrop-filter:blur(2px); }
+        .history-panel { position:fixed; top:0; right:0; bottom:0; width:420px; max-width:100vw; background:#fff; z-index:201; box-shadow:-8px 0 40px rgba(0,0,0,0.12); display:flex; flex-direction:column; }
+        .history-hdr { padding:24px; border-bottom:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:flex-start; flex-shrink:0; }
+        .history-title { font-size:1rem; font-weight:800; color:#0f172a; }
+        .history-sub { font-size:0.78rem; color:#94a3b8; margin-top:3px; }
+        .history-close { width:32px; height:32px; border-radius:8px; border:1.5px solid #f1f5f9; background:#f8f9fb; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:1rem; color:#64748b; transition:all 0.15s; }
+        .history-close:hover { border-color:#ef4444; color:#ef4444; background:#fef2f2; }
+        .history-body { flex:1; overflow-y:auto; padding:16px 24px; }
+        .history-item { padding:14px 0; border-bottom:1px solid #f8f9fb; }
+        .history-item:last-child { border-bottom:none; }
+        .history-item-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
         .mobile-cards { display:none; }
         .call-card { padding:16px 20px; border-bottom:1px solid #f8f9fb; }
         .call-card:last-child { border-bottom:none; }
@@ -393,7 +413,7 @@ export default function Dashboard() {
                           <>
                             <tr key={call.id}>
                               <td><span className="date-text">{perthDate(call.created_at)}</span></td>
-                              <td><span className="caller-num">{call.caller_number || 'Unknown'}</span></td>
+                              <td><span className="caller-num" onClick={() => openCallerHistory(call.caller_number)}>{call.caller_number || 'Unknown'}</span></td>
                               {isAdmin && selectedClient === 'all' && <td style={{fontSize:'0.78rem', color:'#64748b'}}>{callClientName}</td>}
                               <td>
                                 <span className="outcome-badge" style={{
@@ -475,7 +495,7 @@ export default function Dashboard() {
                         <div key={call.id} className="call-card">
                           <div className="call-card-top">
                             <div>
-                              <div style={{fontWeight:'700', color:'#0f172a', fontSize:'0.9rem', fontFamily:'JetBrains Mono,monospace'}}>{call.caller_number || 'Unknown'}</div>
+                              <div style={{fontWeight:'700', color:'#0f172a', fontSize:'0.9rem', fontFamily:'JetBrains Mono,monospace', cursor:'pointer'}} onClick={() => openCallerHistory(call.caller_number)}>{call.caller_number || 'Unknown'}</div>
                               <div style={{fontSize:'0.72rem', color:'#94a3b8', marginTop:'2px'}}>{perthDate(call.created_at)}</div>
                               {callClientName && <div style={{fontSize:'0.7rem', color:'#7F77DD', fontWeight:'600', marginTop:'2px'}}>{callClientName}</div>}
                             </div>
@@ -542,6 +562,63 @@ export default function Dashboard() {
           </div>
         </main>
       </div>
+
+      {/* Caller History Panel */}
+      {callerHistory && (
+        <>
+          <div className="history-overlay" onClick={() => setCallerHistory(null)} />
+          <div className="history-panel">
+            <div className="history-hdr">
+              <div>
+                <div className="history-title">📞 {callerHistory.number}</div>
+                <div className="history-sub">{callerHistory.calls.length} call{callerHistory.calls.length !== 1 ? 's' : ''} on record</div>
+              </div>
+              <button className="history-close" onClick={() => setCallerHistory(null)}>✕</button>
+            </div>
+            <div className="history-body">
+              {callerHistory.calls.length === 0 ? (
+                <div style={{textAlign:'center', padding:'40px 0', color:'#94a3b8', fontSize:'0.85rem'}}>No history found.</div>
+              ) : callerHistory.calls.map((c, i) => {
+                const intent = getCallIntent(c.call_summary)
+                return (
+                  <div key={c.id} className="history-item">
+                    <div className="history-item-top">
+                      <span style={{fontSize:'0.78rem', color:'#64748b'}}>{perthDate(c.created_at)}</span>
+                      <span className="outcome-badge" style={{
+                        background: outcomeColor(c.call_outcome) + '12',
+                        color: outcomeColor(c.call_outcome),
+                        border: `1px solid ${outcomeColor(c.call_outcome)}25`,
+                        fontSize:'0.68rem', padding:'3px 8px'
+                      }}>
+                        <span style={{width:'4px', height:'4px', borderRadius:'50%', background: outcomeColor(c.call_outcome), display:'inline-block', marginRight:'4px'}} />
+                        {outcomeLabel(c.call_outcome)}
+                      </span>
+                    </div>
+                    {intent && (
+                      <span className="intent-badge" style={{
+                        background: intent.color + '12', color: intent.color,
+                        border: `1px solid ${intent.color}25`, marginBottom:'8px', display:'inline-flex'
+                      }}>
+                        {intent.icon} {intent.label}
+                      </span>
+                    )}
+                    {c.call_summary && (
+                      <div style={{fontSize:'0.82rem', color:'#475569', lineHeight:'1.6', background:'#f8f9fb', borderRadius:'8px', padding:'10px 12px'}}>
+                        {c.call_summary}
+                      </div>
+                    )}
+                    {c.call_duration && (
+                      <div style={{fontSize:'0.72rem', color:'#94a3b8', marginTop:'6px'}}>
+                        ⏱ {Math.round(parseFloat(c.call_duration))}s
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </>
+      )}
     </>
   )
 }
