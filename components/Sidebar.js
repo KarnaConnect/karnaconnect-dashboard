@@ -59,6 +59,7 @@ export default function Sidebar({ isAdmin, activePage, mobileOpen, onClose }) {
 
   const navItems = [
     { icon: '📞', label: 'Calls', page: 'dashboard', href: '/', show: true },
+    { icon: '📤', label: 'Outreach', page: 'outreach', href: '/outreach', show: true },
     { icon: '👥', label: 'Clients', page: 'clients', href: '/clients', show: isAdmin },
     { icon: '📊', label: 'Analytics', page: 'analytics', href: '/analytics', show: true },
     { icon: '💳', label: 'Billing', page: 'usage', href: '/usage', show: true },
