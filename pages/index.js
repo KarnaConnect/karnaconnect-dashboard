@@ -8,8 +8,9 @@ const supabase = createClient(
 )
 
 const PERTH = 'Australia/Perth'
-function perthDate(ts) { return new Date(ts).toLocaleString('en-AU', { timeZone: PERTH }) }
-function perthDateShort(ts) { return new Date(ts).toLocaleDateString('en-AU', { timeZone: PERTH }) }
+function toUtc(ts) { if (!ts) return ts; const s = String(ts); return /[Zz+]|\d{2}:\d{2}$/.test(s) ? s : s.replace(' ', 'T') + 'Z' }
+function perthDate(ts) { return new Date(toUtc(ts)).toLocaleString('en-AU', { timeZone: PERTH }) }
+function perthDateShort(ts) { return new Date(toUtc(ts)).toLocaleDateString('en-AU', { timeZone: PERTH }) }
 function callTs(call) { return call.started_at || call.created_at }
 function isToday(ts) { return perthDateShort(ts) === perthDateShort(new Date()) }
 

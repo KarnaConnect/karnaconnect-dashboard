@@ -8,7 +8,8 @@ const supabase = createClient(
 )
 
 const PERTH = 'Australia/Perth'
-function perthDateShort(ts) { return new Date(ts).toLocaleDateString('en-AU', { timeZone: PERTH }) }
+function toUtc(ts) { if (!ts) return ts; const s = String(ts); return /[Zz+]|\d{2}:\d{2}$/.test(s) ? s : s.replace(' ', 'T') + 'Z' }
+function perthDateShort(ts) { return new Date(toUtc(ts)).toLocaleDateString('en-AU', { timeZone: PERTH }) }
 function callTs(c) { return c.started_at || c.created_at }
 function isToday(ts) { return perthDateShort(ts) === perthDateShort(new Date()) }
 
@@ -87,7 +88,7 @@ export default function Analytics() {
     hour: i,
     label: `${i.toString().padStart(2, '0')}:00`,
     count: calls.filter(c => {
-      const h = new Date(callTs(c)).toLocaleString('en-AU', { timeZone: PERTH, hour: 'numeric', hour12: false })
+      const h = new Date(toUtc(callTs(c))).toLocaleString('en-AU', { timeZone: PERTH, hour: 'numeric', hour12: false })
       return parseInt(h) === i
     }).length
   }))
@@ -236,7 +237,7 @@ export default function Analytics() {
             <div className="chart-card">
               <div className="chart-hdr">
                 <div className="chart-title">📈 Call Volume — Last 30 Days</div>
-                <div className="chart-sub">{calls.filter(c => { const d = new Date(); d.setDate(d.getDate() - 30); return new Date(callTs(c)) > d }).length} calls</div>
+                <div className="chart-sub">{calls.filter(c => { const d = new Date(); d.setDate(d.getDate() - 30); return new Date(toUtc(callTs(c))) > d }).length} calls</div>
               </div>
               <div className="chart-body">
                 <div className="bar-chart">
