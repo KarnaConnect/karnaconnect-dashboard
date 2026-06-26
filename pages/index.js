@@ -10,6 +10,7 @@ const supabase = createClient(
 const PERTH = 'Australia/Perth'
 function perthDate(ts) { return new Date(ts).toLocaleString('en-AU', { timeZone: PERTH }) }
 function perthDateShort(ts) { return new Date(ts).toLocaleDateString('en-AU', { timeZone: PERTH }) }
+function callTs(call) { return call.started_at || call.created_at }
 function isToday(ts) { return perthDateShort(ts) === perthDateShort(new Date()) }
 
 export default function Dashboard() {
@@ -109,7 +110,7 @@ export default function Dashboard() {
     const { data } = await query
     if (data) {
       setCalls(data)
-      const todayCalls = data.filter(c => isToday(c.created_at))
+      const todayCalls = data.filter(c => isToday(callTs(c)))
       const durations = data.filter(c => c.call_duration).map(c => parseFloat(c.call_duration))
       const avg = durations.length ? Math.round(durations.reduce((a, b) => a + b, 0) / durations.length) : 0
       const completed = data.filter(c => c.call_outcome && c.call_outcome.includes('ended')).length
@@ -413,7 +414,7 @@ export default function Dashboard() {
                         return (
                           <>
                             <tr key={call.id}>
-                              <td><span className="date-text">{perthDate(call.created_at)}</span></td>
+                              <td><span className="date-text">{perthDate(callTs(call))}</span></td>
                               <td><span className="caller-num" onClick={() => openCallerHistory(call.caller_number)}>{call.caller_number || 'Unknown'}</span></td>
                               {isAdmin && selectedClient === 'all' && <td style={{fontSize:'0.78rem', color:'#64748b'}}>{callClientName}</td>}
                               <td>
@@ -497,7 +498,7 @@ export default function Dashboard() {
                           <div className="call-card-top">
                             <div>
                               <div style={{fontWeight:'700', color:'#0f172a', fontSize:'0.9rem', fontFamily:'JetBrains Mono,monospace', cursor:'pointer'}} onClick={() => openCallerHistory(call.caller_number)}>{call.caller_number || 'Unknown'}</div>
-                              <div style={{fontSize:'0.72rem', color:'#94a3b8', marginTop:'2px'}}>{perthDate(call.created_at)}</div>
+                              <div style={{fontSize:'0.72rem', color:'#94a3b8', marginTop:'2px'}}>{perthDate(callTs(call))}</div>
                               {callClientName && <div style={{fontSize:'0.7rem', color:'#7F77DD', fontWeight:'600', marginTop:'2px'}}>{callClientName}</div>}
                             </div>
                             <span className="outcome-badge" style={{
@@ -584,7 +585,7 @@ export default function Dashboard() {
                 return (
                   <div key={c.id} className="history-item">
                     <div className="history-item-top">
-                      <span style={{fontSize:'0.78rem', color:'#64748b'}}>{perthDate(c.created_at)}</span>
+                      <span style={{fontSize:'0.78rem', color:'#64748b'}}>{perthDate(callTs(c))}</span>
                       <span className="outcome-badge" style={{
                         background: outcomeColor(c.call_outcome) + '12',
                         color: outcomeColor(c.call_outcome),

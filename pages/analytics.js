@@ -9,6 +9,7 @@ const supabase = createClient(
 
 const PERTH = 'Australia/Perth'
 function perthDateShort(ts) { return new Date(ts).toLocaleDateString('en-AU', { timeZone: PERTH }) }
+function callTs(c) { return c.started_at || c.created_at }
 function isToday(ts) { return perthDateShort(ts) === perthDateShort(new Date()) }
 
 export default function Analytics() {
@@ -67,7 +68,7 @@ export default function Analytics() {
 
   const callsByDay = last30Days.map(day => ({
     day: day.split('/').slice(0, 2).join('/'),
-    count: calls.filter(c => perthDateShort(c.created_at) === day).length
+    count: calls.filter(c => perthDateShort(callTs(c)) === day).length
   }))
 
   const maxDayCount = Math.max(...callsByDay.map(d => d.count), 1)
@@ -86,14 +87,14 @@ export default function Analytics() {
     hour: i,
     label: `${i.toString().padStart(2, '0')}:00`,
     count: calls.filter(c => {
-      const h = new Date(c.created_at).toLocaleString('en-AU', { timeZone: PERTH, hour: 'numeric', hour12: false })
+      const h = new Date(callTs(c)).toLocaleString('en-AU', { timeZone: PERTH, hour: 'numeric', hour12: false })
       return parseInt(h) === i
     }).length
   }))
 
   const maxHourCount = Math.max(...hourBuckets.map(h => h.count), 1)
   const peakHour = hourBuckets.reduce((a, b) => a.count > b.count ? a : b)
-  const todayCount = calls.filter(c => isToday(c.created_at)).length
+  const todayCount = calls.filter(c => isToday(callTs(c))).length
   const durations = calls.filter(c => c.call_duration).map(c => parseFloat(c.call_duration))
   const avgDuration = durations.length ? Math.round(durations.reduce((a, b) => a + b, 0) / durations.length) : 0
 
@@ -235,7 +236,7 @@ export default function Analytics() {
             <div className="chart-card">
               <div className="chart-hdr">
                 <div className="chart-title">📈 Call Volume — Last 30 Days</div>
-                <div className="chart-sub">{calls.filter(c => { const d = new Date(); d.setDate(d.getDate() - 30); return new Date(c.created_at) > d }).length} calls</div>
+                <div className="chart-sub">{calls.filter(c => { const d = new Date(); d.setDate(d.getDate() - 30); return new Date(callTs(c)) > d }).length} calls</div>
               </div>
               <div className="chart-body">
                 <div className="bar-chart">

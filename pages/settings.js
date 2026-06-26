@@ -142,7 +142,7 @@ export default function Settings() {
     const csv = [
       ['Date', 'Caller', 'Duration (s)', 'Outcome', 'Summary'].join(','),
       ...data.map(c => [
-        new Date(c.created_at).toLocaleString('en-AU', { timeZone: PERTH }),
+        new Date(c.started_at || c.created_at).toLocaleString('en-AU', { timeZone: PERTH }),
         c.caller_number || '',
         c.call_duration || '',
         c.call_outcome || '',
