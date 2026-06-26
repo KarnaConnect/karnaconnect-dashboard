@@ -147,6 +147,16 @@ export default function Outreach() {
     }
   }
 
+  // Sample CSV download
+  function downloadSampleCSV() {
+    const content = 'name,phone_number\nJohn Smith,+61400000001\nSarah Jones,+61400000002\nMichael Brown,+61400000003'
+    const blob = new Blob([content], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url; a.download = 'sample_contacts.csv'; a.click()
+    URL.revokeObjectURL(url)
+  }
+
   // CSV upload
   function handleCSV(e) {
     const file = e.target.files[0]
@@ -478,7 +488,7 @@ export default function Outreach() {
               <div className="csv-drop" onClick={() => fileRef.current?.click()}>
                 <div className="csv-drop-icon">📂</div>
                 <div className="csv-drop-text">{newCampaign.contacts.length > 0 ? `${newCampaign.contacts.length} contacts loaded` : 'Click to upload CSV'}</div>
-                <div className="csv-drop-hint">Columns: name, phone_number</div>
+                <div className="csv-drop-hint">Columns: name, phone_number · <span style={{color:'#534AB7',cursor:'pointer',textDecoration:'underline'}} onClick={e=>{e.stopPropagation();downloadSampleCSV()}}>Download sample</span></div>
               </div>
               <input ref={fileRef} type="file" accept=".csv,.txt" style={{ display: 'none' }} onChange={handleCSV} />
               {csvError && <div className="csv-error">⚠️ {csvError}</div>}
