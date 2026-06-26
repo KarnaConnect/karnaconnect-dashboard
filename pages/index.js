@@ -148,6 +148,7 @@ export default function Dashboard() {
     setCallerHistory({ number, calls: history })
   }
 
+
   const outcomeColor = (o) => {
     if (!o) return '#94a3b8'
     if (o.includes('ended')) return '#10b981'
