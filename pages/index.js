@@ -416,7 +416,16 @@ export default function Dashboard() {
                           <>
                             <tr key={call.id}>
                               <td><span className="date-text">{perthDate(callTs(call))}</span></td>
-                              <td><span className="caller-num" onClick={() => openCallerHistory(call.caller_number)}>{call.caller_number || 'Unknown'}</span></td>
+                              <td>
+                                <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}>
+                                  <span style={{fontSize:'0.68rem',fontWeight:700,padding:'2px 7px',borderRadius:'20px',
+                                    background: call.direction === 'outbound' ? '#eff6ff' : '#f0fdf4',
+                                    color: call.direction === 'outbound' ? '#2563eb' : '#16a34a'}}>
+                                    {call.direction === 'outbound' ? '↗ Out' : '↙ In'}
+                                  </span>
+                                  <span className="caller-num" onClick={() => openCallerHistory(call.caller_number)}>{call.caller_number || 'Unknown'}</span>
+                                </span>
+                              </td>
                               {isAdmin && selectedClient === 'all' && <td style={{fontSize:'0.78rem', color:'#64748b'}}>{callClientName}</td>}
                               <td>
                                 <span className="outcome-badge" style={{
@@ -498,7 +507,14 @@ export default function Dashboard() {
                         <div key={call.id} className="call-card">
                           <div className="call-card-top">
                             <div>
-                              <div style={{fontWeight:'700', color:'#0f172a', fontSize:'0.9rem', fontFamily:'JetBrains Mono,monospace', cursor:'pointer'}} onClick={() => openCallerHistory(call.caller_number)}>{call.caller_number || 'Unknown'}</div>
+                              <div style={{display:'flex',alignItems:'center',gap:'6px'}}>
+                                <span style={{fontSize:'0.65rem',fontWeight:700,padding:'2px 6px',borderRadius:'20px',
+                                  background: call.direction === 'outbound' ? '#eff6ff' : '#f0fdf4',
+                                  color: call.direction === 'outbound' ? '#2563eb' : '#16a34a'}}>
+                                  {call.direction === 'outbound' ? '↗ Out' : '↙ In'}
+                                </span>
+                                <div style={{fontWeight:'700', color:'#0f172a', fontSize:'0.9rem', fontFamily:'JetBrains Mono,monospace', cursor:'pointer'}} onClick={() => openCallerHistory(call.caller_number)}>{call.caller_number || 'Unknown'}</div>
+                              </div>
                               <div style={{fontSize:'0.72rem', color:'#94a3b8', marginTop:'2px'}}>{perthDate(callTs(call))}</div>
                               {callClientName && <div style={{fontSize:'0.7rem', color:'#7F77DD', fontWeight:'600', marginTop:'2px'}}>{callClientName}</div>}
                             </div>
