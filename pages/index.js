@@ -418,11 +418,14 @@ export default function Dashboard() {
                               <td><span className="date-text">{perthDate(callTs(call))}</span></td>
                               <td>
                                 <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}>
-                                  <span style={{fontSize:'0.68rem',fontWeight:700,padding:'2px 7px',borderRadius:'20px',
-                                    background: call.direction === 'outbound' ? '#eff6ff' : '#f0fdf4',
-                                    color: call.direction === 'outbound' ? '#2563eb' : '#16a34a'}}>
-                                    {call.direction === 'outbound' ? '↗ Out' : '↙ In'}
-                                  </span>
+                                  {call.channel === 'whatsapp'
+                                    ? <span style={{fontSize:'0.68rem',fontWeight:700,padding:'2px 7px',borderRadius:'20px',background:'#f0fdf4',color:'#16a34a'}}>💬 WhatsApp</span>
+                                    : <span style={{fontSize:'0.68rem',fontWeight:700,padding:'2px 7px',borderRadius:'20px',
+                                        background: call.direction === 'outbound' ? '#eff6ff' : '#f0fdf4',
+                                        color: call.direction === 'outbound' ? '#2563eb' : '#16a34a'}}>
+                                        {call.direction === 'outbound' ? '↗ Out' : '↙ In'}
+                                      </span>
+                                  }
                                   <span className="caller-num" onClick={() => openCallerHistory(call.caller_number)}>{call.caller_number || 'Unknown'}</span>
                                 </span>
                               </td>
@@ -508,11 +511,14 @@ export default function Dashboard() {
                           <div className="call-card-top">
                             <div>
                               <div style={{display:'flex',alignItems:'center',gap:'6px'}}>
-                                <span style={{fontSize:'0.65rem',fontWeight:700,padding:'2px 6px',borderRadius:'20px',
-                                  background: call.direction === 'outbound' ? '#eff6ff' : '#f0fdf4',
-                                  color: call.direction === 'outbound' ? '#2563eb' : '#16a34a'}}>
-                                  {call.direction === 'outbound' ? '↗ Out' : '↙ In'}
-                                </span>
+                                {call.channel === 'whatsapp'
+                                  ? <span style={{fontSize:'0.65rem',fontWeight:700,padding:'2px 6px',borderRadius:'20px',background:'#f0fdf4',color:'#16a34a'}}>💬 WhatsApp</span>
+                                  : <span style={{fontSize:'0.65rem',fontWeight:700,padding:'2px 6px',borderRadius:'20px',
+                                      background: call.direction === 'outbound' ? '#eff6ff' : '#f0fdf4',
+                                      color: call.direction === 'outbound' ? '#2563eb' : '#16a34a'}}>
+                                      {call.direction === 'outbound' ? '↗ Out' : '↙ In'}
+                                    </span>
+                                }
                                 <div style={{fontWeight:'700', color:'#0f172a', fontSize:'0.9rem', fontFamily:'JetBrains Mono,monospace', cursor:'pointer'}} onClick={() => openCallerHistory(call.caller_number)}>{call.caller_number || 'Unknown'}</div>
                               </div>
                               <div style={{fontSize:'0.72rem', color:'#94a3b8', marginTop:'2px'}}>{perthDate(callTs(call))}</div>
