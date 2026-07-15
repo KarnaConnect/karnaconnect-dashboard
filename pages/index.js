@@ -7,6 +7,7 @@ const supabase = createClient(
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVueGFqcWFoeG5iZ3h3aWd2c2p6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyNTA0OTQsImV4cCI6MjA5MjgyNjQ5NH0.VRzz5We66I620lBKz2WXQgmD02BJbCyqs0eW4YN8IGw'
 )
 
+const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL
 const PERTH = 'Australia/Perth'
 function toUtc(ts) { if (!ts) return ts; const s = String(ts); return /[Zz+]|\d{2}:\d{2}$/.test(s) ? s : s.replace(' ', 'T') + 'Z' }
 function perthDate(ts) { return new Date(toUtc(ts)).toLocaleString('en-AU', { timeZone: PERTH }) }
@@ -463,7 +464,7 @@ export default function Dashboard() {
                                       <>
                                         <div className="expand-label">🎙 Recording</div>
                                         <audio controls style={{ width:'100%', borderRadius:'8px', height:'36px', accentColor:'#534AB7' }}>
-                                          <source src={call.recording_url} type="audio/wav" />
+                                          <source src={`${BACKEND}/recording/${call.vapi_call_id}`} type="audio/wav" />
                                         </audio>
                                       </>
                                     )}
@@ -556,7 +557,7 @@ export default function Dashboard() {
                             <div className="call-card-expand">
                               {expanded[call.id] === 'recording' && call.recording_url && (
                                 <><div className="expand-label">🎙 Recording</div>
-                                <audio controls style={{ width:'100%', borderRadius:'6px', height:'32px' }}><source src={call.recording_url} type="audio/wav" /></audio></>
+                                <audio controls style={{ width:'100%', borderRadius:'6px', height:'32px' }}><source src={`${BACKEND}/recording/${call.vapi_call_id}`} type="audio/wav" /></audio></>
                               )}
                               {expanded[call.id] === 'summary' && call.call_summary && (
                                 <><div className="expand-label">✨ Summary</div>
