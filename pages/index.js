@@ -348,8 +348,9 @@ export default function Dashboard() {
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
               borderRadius: '10px', marginBottom: '16px', boxShadow: '0 2px 8px rgba(245,158,11,0.3)'
             }}>
-              <span style={{ fontWeight: '700', fontSize: '0.88rem', color: '#151129' }}>
-                👁 Viewing as {impersonating.clientName} — client view
+              <span style={{ fontWeight: '700', fontSize: '0.88rem', color: '#151129', display: 'inline-flex', alignItems: 'center', gap: '7px' }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                Viewing as {impersonating.clientName} — client view
               </span>
               <button
                 onClick={() => { sessionStorage.removeItem('impersonating'); window.location.reload() }}
@@ -370,7 +371,7 @@ export default function Dashboard() {
                 </div>
               </div>
               <div className="hero-right">
-                {isAdmin && !impersonating && <div className="admin-pill">⚡ Admin</div>}
+                {isAdmin && !impersonating && <div className="admin-pill" style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> Admin</div>}
                 <div className="live-pill-hero">
                   <div className="live-dot-hero" />
                   <span className="live-text-hero">Live</span>
@@ -392,25 +393,25 @@ export default function Dashboard() {
 
             <div className="stats-grid">
               <div className="stat-card">
-                <div className="stat-icon-badge" style={{ background: '#f1eefb' }}>📞</div>
+                <div className="stat-icon-badge" style={{ background: '#f1eefb', color: '#6f5fd6' }}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.37 2 2 0 0 1 3.57 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.54a16 16 0 0 0 5.55 5.55l.91-.91a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></div>
                 <div className="stat-label">Total Calls</div>
                 <div className="stat-value">{stats.total}</div>
                 <div className="stat-sub">All time · {stats.today} today</div>
               </div>
               <div className="stat-card">
-                <div className="stat-icon-badge" style={{ background: '#eafbf1' }}>✅</div>
+                <div className="stat-icon-badge" style={{ background: '#eafbf1', color: '#10a15c' }}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
                 <div className="stat-label">Calls Handled</div>
                 <div className="stat-value">{stats.completed}</div>
                 <div className="stat-sub">{stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0}% answer rate</div>
               </div>
               <div className="stat-card">
-                <div className="stat-icon-badge" style={{ background: '#fff7e8' }}>⏱</div>
+                <div className="stat-icon-badge" style={{ background: '#fff7e8', color: '#c68a1d' }}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
                 <div className="stat-label">Hours Saved</div>
                 <div className="stat-value">{stats.totalDuration > 0 ? (stats.totalDuration / 3600).toFixed(1) : '0'}<span className="stat-unit"> hrs</span></div>
                 <div className="stat-sub">Of staff phone time</div>
               </div>
               <div className="stat-card">
-                <div className="stat-icon-badge" style={{ background: '#f4f0fc' }}>💰</div>
+                <div className="stat-icon-badge" style={{ background: '#f4f0fc', color: '#6f5fd6' }}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
                 <div className="stat-label">Cost Saved</div>
                 <div className="stat-value">${stats.hoursActive > 0 ? Math.round(stats.hoursActive * 8) : 0}</div>
                 <div className="stat-sub">Est. equivalent 24/7 call centre cost</div>
