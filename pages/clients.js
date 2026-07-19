@@ -81,6 +81,25 @@ export default function Clients() {
     }
   }
 
+  async function updateClientPlan(clientId, planId) {
+    const { error } = await supabase
+      .from('clients')
+      .update({ plan_id: planId || null })
+      .eq('id', clientId)
+    if (error) {
+      alert('Error updating plan: ' + error.message)
+    } else {
+      setClients(prev => prev.map(c =>
+        c.id === clientId ? { ...c, plan_id: planId || null } : c
+      ))
+    }
+  }
+
+  function viewAsClient(client) {
+    sessionStorage.setItem('impersonating', JSON.stringify({ clientId: client.id, clientName: client.business_name }))
+    window.location.href = '/'
+  }
+
   async function assignTrial(clientId) {
     if (!confirm('Assign a 7-day free trial to this client?')) return
     const trialExpiry = new Date()
@@ -184,6 +203,8 @@ export default function Clients() {
         .client-mobile-card { background:#fff; border-radius:12px; border:1px solid #e2e8f5; padding:16px; margin-bottom:12px; box-shadow:0 1px 4px rgba(26,21,53,0.05); }
         .client-mobile-card-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px; }
         .client-mobile-actions { display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; }
+        .plan-select { padding:3px 6px; border-radius:8px; border:1.5px solid #e2e8f0; font-size:0.78rem; font-family:'Plus Jakarta Sans',sans-serif; color:#334155; background:#fff; cursor:pointer; outline:none; max-width:130px; }
+        .plan-select:focus { border-color:#534AB7; }
         .overlay { display:none; position:fixed; inset:0; background:rgba(26,21,53,0.5); z-index:150; backdrop-filter:blur(2px); }
         .overlay.show { display:block; }
         @media (max-width:900px) {
@@ -296,9 +317,16 @@ export default function Clients() {
                             <div style={{fontSize:'0.75rem', color:'#94a3b8'}}>{client.phone_number}</div>
                           </td>
                           <td>
-                            <span className={`plan-badge plan-${planName.replace(' ','') || 'none'}`}>
-                              {planName}
-                            </span>
+                            <select
+                              className="plan-select"
+                              value={client.plan_id || ''}
+                              onChange={e => updateClientPlan(client.id, e.target.value)}
+                            >
+                              <option value="">No plan</option>
+                              {plans.map(p => (
+                                <option key={p.id} value={p.id}>{p.name}</option>
+                              ))}
+                            </select>
                           </td>
                           <td>
                             <div className="usage-wrap">
@@ -319,7 +347,7 @@ export default function Clients() {
                             {client.created_at ? new Date(client.created_at).toLocaleDateString('en-AU', { timeZone: PERTH }) : '—'}
                           </td>
                           <td>
-                            <span className="action-btn" title="View Dashboard" onClick={() => window.location.href = '/?client=' + client.id}>📊</span>
+                            <span className="action-btn" title="View as Client" onClick={() => viewAsClient(client)}>👁</span>
                             <span className="action-btn" title="Usage & Billing" onClick={() => window.location.href = '/usage'}>💳</span>
                             <span className="action-btn" title="View in VAPI" onClick={() => window.open('https://dashboard.vapi.ai', '_blank')}>🤖</span>
                             <span className="action-btn" title={client.active ? 'Deactivate' : 'Activate'} onClick={() => toggleClientStatus(client.id, client.active)} style={{color: client.active ? '#ef4444' : '#10b981'}}>{client.active ? '🔴' : '🟢'}</span>
@@ -342,10 +370,17 @@ export default function Clients() {
                           <div>
                             <div className="client-name">{client.business_name}</div>
                             <div className="client-email">{client.contact_email}</div>
-                            <div style={{marginTop:'4px'}}>
-                              <span className={`plan-badge plan-${planName.replace(' ','') || 'none'}`}>
-                                {planName}
-                              </span>
+                            <div style={{marginTop:'6px'}}>
+                              <select
+                                className="plan-select"
+                                value={client.plan_id || ''}
+                                onChange={e => updateClientPlan(client.id, e.target.value)}
+                              >
+                                <option value="">No plan</option>
+                                {plans.map(p => (
+                                  <option key={p.id} value={p.id}>{p.name}</option>
+                                ))}
+                              </select>
                             </div>
                           </div>
                           <div style={{textAlign:'right'}}>
@@ -360,7 +395,7 @@ export default function Clients() {
                           </div>
                         </div>
                         <div className="client-mobile-actions">
-                          <span className="action-btn" title="Dashboard" onClick={() => window.location.href = '/?client=' + client.id}>📊</span>
+                          <span className="action-btn" title="View as Client" onClick={() => viewAsClient(client)}>👁</span>
                           <span className="action-btn" title="Billing" onClick={() => window.location.href = '/usage'}>💳</span>
                           <span className="action-btn" title="VAPI" onClick={() => window.open('https://dashboard.vapi.ai', '_blank')}>🤖</span>
                           <span className="action-btn" onClick={() => toggleClientStatus(client.id, client.active)} style={{color: client.active ? '#ef4444' : '#10b981'}}>{client.active ? '🔴' : '🟢'}</span>

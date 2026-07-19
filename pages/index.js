@@ -31,6 +31,7 @@ export default function Dashboard() {
   const [pullDistance, setPullDistance] = useState(0)
   const [callerHistory, setCallerHistory] = useState(null)
   const [features, setFeatures] = useState({ recordings: true, transcripts: true, analytics: true, outreach: true, campaigns: true })
+  const [impersonating, setImpersonating] = useState(null) // { clientId, clientName }
   const currentClientIdRef = useRef(null)
   const currentStartDateRef = useRef(null)
   const touchStartY = useRef(null)
@@ -58,7 +59,32 @@ export default function Dashboard() {
         const { data: allClients } = await supabase
           .from('clients').select('id, business_name').eq('active', true)
         if (allClients) setClients(allClients)
-        await fetchCalls(null)
+
+        // Check for client impersonation
+        const imp = sessionStorage.getItem('impersonating')
+        if (imp) {
+          try {
+            const { clientId, clientName: impName } = JSON.parse(imp)
+            setImpersonating({ clientId, clientName: impName })
+            const { data: cd } = await supabase.from('clients').select('business_name, created_at, billing_start_date, plan_id')
+              .eq('id', clientId).single()
+            if (cd) {
+              setClientName(cd.business_name)
+              const start = cd.billing_start_date || cd.created_at
+              setClientStartDate(start)
+              if (cd.plan_id) {
+                const { data: plan } = await supabase.from('plans').select('features').eq('id', cd.plan_id).single()
+                if (plan?.features) setFeatures(f => ({ ...f, ...plan.features }))
+              }
+              await fetchCalls(clientId, start)
+            }
+          } catch(e) {
+            sessionStorage.removeItem('impersonating')
+            await fetchCalls(null)
+          }
+        } else {
+          await fetchCalls(null)
+        }
       } else if (userClient && userClient.client_id) {
         setIsAdmin(false)
         const { data: cd } = await supabase.from('clients').select('business_name, created_at, billing_start_date, plan_id')
@@ -327,17 +353,39 @@ export default function Dashboard() {
         <Sidebar isAdmin={isAdmin} activePage="dashboard" mobileOpen={mobileNav} onClose={() => setMobileNav(false)} features={features} />
 
         <main className="main">
+          {impersonating && (
+            <div style={{
+              position:'sticky', top:0, zIndex:90,
+              background:'linear-gradient(135deg,#f59e0b,#fbbf24)',
+              padding:'10px 20px', display:'flex', alignItems:'center', justifyContent:'space-between',
+              borderRadius:'10px', marginBottom:'16px', boxShadow:'0 2px 8px rgba(245,158,11,0.3)'
+            }}>
+              <span style={{fontWeight:'700', fontSize:'0.88rem', color:'#1a1535'}}>
+                👁 Viewing as {impersonating.clientName} — client view
+              </span>
+              <button
+                onClick={() => { sessionStorage.removeItem('impersonating'); window.location.reload() }}
+                style={{
+                  background:'rgba(26,21,53,0.15)', border:'none', borderRadius:'7px',
+                  padding:'5px 14px', fontWeight:'700', fontSize:'0.82rem', color:'#1a1535',
+                  cursor:'pointer', fontFamily:'Plus Jakarta Sans, sans-serif'
+                }}
+              >
+                ✕ Exit
+              </button>
+            </div>
+          )}
           <div className="hero-header">
             <div className="hero-row">
               <div>
                 <div className="hero-eyebrow">AI Receptionist</div>
-                <div className="hero-title">{isAdmin ? 'Enterprise Dashboard' : clientName}</div>
+                <div className="hero-title">{impersonating ? impersonating.clientName : isAdmin ? 'Enterprise Dashboard' : clientName}</div>
                 <div className="hero-sub">
                   {new Date().toLocaleDateString('en-AU', { timeZone: PERTH, weekday:'long', year:'numeric', month:'long', day:'numeric' })}
                 </div>
               </div>
               <div className="hero-right">
-                {isAdmin && <div className="admin-pill">⚡ Admin</div>}
+                {isAdmin && !impersonating && <div className="admin-pill">⚡ Admin</div>}
                 <div className="live-pill-hero">
                   <div className="live-dot-hero" />
                   <span className="live-text-hero">Live</span>
@@ -347,7 +395,7 @@ export default function Dashboard() {
           </div>
 
           <div className="content">
-            {isAdmin && (
+            {isAdmin && !impersonating && (
               <div className="client-selector-wrap">
                 <div className="client-selector-label">Viewing</div>
                 <select className="client-selector" value={selectedClient} onChange={e => handleClientChange(e.target.value)}>
