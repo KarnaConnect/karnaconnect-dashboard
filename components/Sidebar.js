@@ -26,7 +26,7 @@ function MashLogo({ size = 32 }) {
   )
 }
 
-export default function Sidebar({ isAdmin, activePage, mobileOpen, onClose }) {
+export default function Sidebar({ isAdmin, activePage, mobileOpen, onClose, features = {} }) {
   const [showCRM, setShowCRM] = useState(false)
   const [crmForm, setCrmForm] = useState({ crm: '', sync: [], notes: '' })
   const [crmSubmitting, setCrmSubmitting] = useState(false)
@@ -57,11 +57,14 @@ export default function Sidebar({ isAdmin, activePage, mobileOpen, onClose }) {
     setCrmSubmitting(false)
   }
 
+  const canAnalytics = isAdmin || features.analytics !== false
+  const canOutreach = isAdmin || features.outreach !== false
+
   const navItems = [
     { icon: '📞', label: 'Calls', page: 'dashboard', href: '/', show: true },
-    { icon: '📤', label: 'Outreach', page: 'outreach', href: '/outreach', show: true },
+    { icon: '📤', label: 'Outreach', page: 'outreach', href: '/outreach', show: canOutreach },
     { icon: '👥', label: 'Clients', page: 'clients', href: '/clients', show: isAdmin },
-    { icon: '📊', label: 'Analytics', page: 'analytics', href: '/analytics', show: true },
+    { icon: '📊', label: 'Analytics', page: 'analytics', href: '/analytics', show: canAnalytics },
     { icon: '💳', label: 'Billing', page: 'usage', href: '/usage', show: true },
     { icon: '🔗', label: 'CRM', page: 'crm', href: null, show: true, action: () => setShowCRM(true) },
     { icon: '⚙️', label: 'Settings', page: 'settings', href: '/settings', show: true },

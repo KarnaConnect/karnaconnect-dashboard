@@ -30,6 +30,7 @@ export default function Dashboard() {
   const [pullRefreshing, setPullRefreshing] = useState(false)
   const [pullDistance, setPullDistance] = useState(0)
   const [callerHistory, setCallerHistory] = useState(null)
+  const [features, setFeatures] = useState({ recordings: true, transcripts: true, analytics: true, outreach: true, campaigns: true })
   const currentClientIdRef = useRef(null)
   const currentStartDateRef = useRef(null)
   const touchStartY = useRef(null)
@@ -60,11 +61,15 @@ export default function Dashboard() {
         await fetchCalls(null)
       } else if (userClient && userClient.client_id) {
         setIsAdmin(false)
-        const { data: cd } = await supabase.from('clients').select('business_name, created_at, billing_start_date')
+        const { data: cd } = await supabase.from('clients').select('business_name, created_at, billing_start_date, plan_id')
           .eq('id', userClient.client_id).single()
         if (cd) {
           setClientName(cd.business_name)
           setClientStartDate(cd.billing_start_date || cd.created_at)
+          if (cd.plan_id) {
+            const { data: plan } = await supabase.from('plans').select('features').eq('id', cd.plan_id).single()
+            if (plan?.features) setFeatures(f => ({ ...f, ...plan.features }))
+          }
         }
         await fetchCalls(userClient.client_id, cd?.billing_start_date || cd?.created_at)
       }
@@ -319,7 +324,7 @@ export default function Dashboard() {
           </div>
         )}
 
-        <Sidebar isAdmin={isAdmin} activePage="dashboard" mobileOpen={mobileNav} onClose={() => setMobileNav(false)} />
+        <Sidebar isAdmin={isAdmin} activePage="dashboard" mobileOpen={mobileNav} onClose={() => setMobileNav(false)} features={features} />
 
         <main className="main">
           <div className="hero-header">
@@ -451,9 +456,9 @@ export default function Dashboard() {
                                 )}
                               </td>
                               <td>
-                                {call.recording_url && <span className={`action-btn ${expanded[call.id] === 'recording' ? 'active' : ''}`} onClick={() => togglePanel(call.id, 'recording')} title="Recording">🎙</span>}
+                                {call.recording_url && (isAdmin || features.recordings) && <span className={`action-btn ${expanded[call.id] === 'recording' ? 'active' : ''}`} onClick={() => togglePanel(call.id, 'recording')} title="Recording">🎙</span>}
                                 {call.call_summary && <span className={`action-btn ${expanded[call.id] === 'summary' ? 'active' : ''}`} onClick={() => togglePanel(call.id, 'summary')} title="Summary">✨</span>}
-                                {call.full_transcript && <span className={`action-btn ${expanded[call.id] === 'transcript' ? 'active' : ''}`} onClick={() => togglePanel(call.id, 'transcript')} title="Transcript">📋</span>}
+                                {call.full_transcript && (isAdmin || features.transcripts) && <span className={`action-btn ${expanded[call.id] === 'transcript' ? 'active' : ''}`} onClick={() => togglePanel(call.id, 'transcript')} title="Transcript">📋</span>}
                               </td>
                             </tr>
                             {expanded[call.id] && (
@@ -549,9 +554,9 @@ export default function Dashboard() {
                             )}
                           </div>
                           <div className="call-card-actions">
-                            {call.recording_url && <span className={`call-card-btn ${expanded[call.id] === 'recording' ? 'active' : ''}`} onClick={() => togglePanel(call.id, 'recording')}>🎙 Recording</span>}
+                            {call.recording_url && (isAdmin || features.recordings) && <span className={`call-card-btn ${expanded[call.id] === 'recording' ? 'active' : ''}`} onClick={() => togglePanel(call.id, 'recording')}>🎙 Recording</span>}
                             {call.call_summary && <span className={`call-card-btn ${expanded[call.id] === 'summary' ? 'active' : ''}`} onClick={() => togglePanel(call.id, 'summary')}>✨ Summary</span>}
-                            {call.full_transcript && <span className={`call-card-btn ${expanded[call.id] === 'transcript' ? 'active' : ''}`} onClick={() => togglePanel(call.id, 'transcript')}>📋 Transcript</span>}
+                            {call.full_transcript && (isAdmin || features.transcripts) && <span className={`call-card-btn ${expanded[call.id] === 'transcript' ? 'active' : ''}`} onClick={() => togglePanel(call.id, 'transcript')}>📋 Transcript</span>}
                           </div>
                           {expanded[call.id] && (
                             <div className="call-card-expand">
