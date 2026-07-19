@@ -8,7 +8,6 @@ const supabase = createClient(
 )
 
 const PERTH = 'Australia/Perth'
-
 export default function Settings() {
   const [user, setUser] = useState(null)
   const [authLoading, setAuthLoading] = useState(true)
@@ -33,20 +32,17 @@ export default function Settings() {
   const [digestFrequency, setDigestFrequency] = useState(null)
   const [digestMsg, setDigestMsg] = useState('')
   const [clientId, setClientId] = useState(null)
-
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) { window.location.href = '/login' }
       else { setUser(session.user); setAuthLoading(false) }
     })
   }, [])
-
   useEffect(() => {
     if (typeof window !== 'undefined' && 'Notification' in window) {
       setNotifEnabled(Notification.permission === 'granted')
     }
   }, [])
-
   useEffect(() => {
     if (!user) return
     async function init() {
@@ -76,65 +72,43 @@ export default function Settings() {
     }
     init()
   }, [user])
-
   async function handleSaveAccount() {
-    const { data: userClient } = await supabase
-      .from('user_clients').select('client_id').eq('user_id', user.id).single()
+    const { data: userClient } = await supabase.from('user_clients').select('client_id').eq('user_id', user.id).single()
     if (!userClient?.client_id) return
-    const { error } = await supabase.from('clients').update({
-      contact_name: contactName,
-      contact_email: contactEmail,
-      phone_number: contactPhone
-    }).eq('id', userClient.client_id)
-    setSaveMsg(error ? '❌ Error saving. Please try again.' : '✅ Details saved successfully.')
+    const { error } = await supabase.from('clients').update({ contact_name: contactName, contact_email: contactEmail, phone_number: contactPhone }).eq('id', userClient.client_id)
+    setSaveMsg(error ? 'Error saving. Please try again.' : 'Details saved successfully.')
     setTimeout(() => setSaveMsg(''), 3000)
   }
-
   async function handleChangePassword() {
-    if (!newPassword || newPassword !== confirmPassword) {
-      setPasswordMsg('❌ Passwords do not match.')
-      return
-    }
-    if (newPassword.length < 8) {
-      setPasswordMsg('❌ Password must be at least 8 characters.')
-      return
-    }
+    if (!newPassword || newPassword !== confirmPassword) { setPasswordMsg('Passwords do not match.'); return }
+    if (newPassword.length < 8) { setPasswordMsg('Password must be at least 8 characters.'); return }
     const { error } = await supabase.auth.updateUser({ password: newPassword })
-    setPasswordMsg(error ? '❌ Error updating password.' : '✅ Password updated successfully.')
-    setNewPassword('')
-    setConfirmPassword('')
+    setPasswordMsg(error ? 'Error updating password.' : 'Password updated successfully.')
+    setNewPassword(''); setConfirmPassword('')
     setTimeout(() => setPasswordMsg(''), 3000)
   }
-
   async function handleResetMinutes() {
     if (!selectedClientId) return
-    const { error } = await supabase.from('clients')
-      .update({ monthly_minutes_used: 0, billing_start_date: new Date().toISOString().split('T')[0] })
-      .eq('id', selectedClientId)
-    setResetMsg(error ? '❌ Error resetting minutes.' : '✅ Minutes reset successfully.')
+    const { error } = await supabase.from('clients').update({ monthly_minutes_used: 0, billing_start_date: new Date().toISOString().split('T')[0] }).eq('id', selectedClientId)
+    setResetMsg(error ? 'Error resetting minutes.' : 'Minutes reset successfully.')
     setTimeout(() => setResetMsg(''), 3000)
   }
-
   async function handleChangePlan() {
     if (!selectedClientId || !selectedPlanId) return
-    const { error } = await supabase.from('clients')
-      .update({ plan_id: selectedPlanId }).eq('id', selectedClientId)
-    setPlanMsg(error ? '❌ Error updating plan.' : '✅ Plan updated successfully.')
+    const { error } = await supabase.from('clients').update({ plan_id: selectedPlanId }).eq('id', selectedClientId)
+    setPlanMsg(error ? 'Error updating plan.' : 'Plan updated successfully.')
     setTimeout(() => setPlanMsg(''), 3000)
   }
-
   async function handleDigestChange(freq) {
     const newFreq = digestFrequency === freq ? null : freq
     setDigestFrequency(newFreq)
     if (!clientId) return
     const { error } = await supabase.from('clients').update({ digest_frequency: newFreq }).eq('id', clientId)
-    setDigestMsg(error ? '❌ Error saving preference.' : '✅ Digest preference saved.')
+    setDigestMsg(error ? 'Error saving preference.' : 'Digest preference saved.')
     setTimeout(() => setDigestMsg(''), 3000)
   }
-
   async function handleExportData() {
-    const { data: userClient } = await supabase
-      .from('user_clients').select('client_id').eq('user_id', user.id).single()
+    const { data: userClient } = await supabase.from('user_clients').select('client_id').eq('user_id', user.id).single()
     let query = supabase.from('calls').select('*').order('created_at', { ascending: false })
     if (userClient?.client_id) query = query.eq('client_id', userClient.client_id)
     const { data } = await query
@@ -142,21 +116,16 @@ export default function Settings() {
     const csv = [
       ['Date', 'Caller', 'Duration (s)', 'Outcome', 'Summary'].join(','),
       ...data.map(c => [
-        new Date((ts => /[Zz+]|\d{2}:\d{2}$/.test(String(ts)) ? ts : String(ts).replace(' ','T')+'Z')(c.started_at || c.created_at)).toLocaleString('en-AU', { timeZone: PERTH }),
-        c.caller_number || '',
-        c.call_duration || '',
-        c.call_outcome || '',
+        new Date((ts => /[Zz+]|\d{2}:\d{2}$/.test(String(ts)) ? ts : String(ts).replace(' ', 'T') + 'Z')(c.started_at || c.created_at)).toLocaleString('en-AU', { timeZone: PERTH }),
+        c.caller_number || '', c.call_duration || '', c.call_outcome || '',
         `"${(c.call_summary || '').replace(/"/g, '""')}"`
       ].join(','))
     ].join('\n')
     const blob = new Blob([csv], { type: 'text/csv' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
-    a.href = url
-    a.download = `calls-export-${new Date().toISOString().split('T')[0]}.csv`
-    a.click()
+    a.href = url; a.download = `calls-export-${new Date().toISOString().split('T')[0]}.csv`; a.click()
   }
-
   async function handleNotifToggle() {
     try {
       const { initializeApp, getApps } = await import('firebase/app')
@@ -171,19 +140,14 @@ export default function Settings() {
       }
       const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
       const messaging = getMessaging(app)
-
       if (!notifEnabled) {
         const permission = await Notification.requestPermission()
-        if (permission !== 'granted') {
-          alert('Please enable notifications in your device settings first.')
-          return
-        }
+        if (permission !== 'granted') { alert('Please enable notifications in your device settings first.'); return }
         const token = await getToken(messaging, { vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY })
         if (token) {
           const clientResult = await supabase.from('user_clients').select('client_id').eq('user_id', user.id).single()
           await fetch('/api/save-token', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ token, userId: user.id, clientId: isAdmin ? null : clientResult.data?.client_id, isAdmin })
           })
           setNotifEnabled(true)
@@ -195,63 +159,52 @@ export default function Settings() {
           setNotifEnabled(false)
         }
       }
-    } catch (err) {
-      console.error('Notification toggle error:', err)
-    }
+    } catch (err) { console.error('Notification toggle error:', err) }
   }
-
   if (authLoading) return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8f9fb', fontFamily: 'Plus Jakarta Sans, sans-serif', fontSize: '0.9rem', color: '#94a3b8' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f6f5fa', fontFamily: 'Plus Jakarta Sans, sans-serif', fontSize: '0.9rem', color: '#9691b3' }}>
       Loading...
     </div>
   )
-
   const tabs = isAdmin
-    ? [{ id: 'account', label: '👤 Account' }, { id: 'clients', label: '👥 Client Management' }, { id: 'password', label: '🔒 Password' }]
-    : [{ id: 'account', label: '👤 Account' }, { id: 'password', label: '🔒 Password' }, { id: 'export', label: '📥 Export Data' }]
-
+    ? [{ id: 'account', label: 'Account' }, { id: 'clients', label: 'Client Management' }, { id: 'password', label: 'Password' }]
+    : [{ id: 'account', label: 'Account' }, { id: 'password', label: 'Password' }, { id: 'export', label: 'Export Data' }]
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
         *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
         html, body { height:100%; }
-        body { font-family:'Plus Jakarta Sans',sans-serif; background:#f8f9fb; -webkit-font-smoothing:antialiased; }
+        body { font-family:'Plus Jakarta Sans',sans-serif; background:#f6f5fa; -webkit-font-smoothing:antialiased; }
         .layout { display:flex; min-height:100vh; }
-        .mobile-topbar { display:none; position:fixed; top:0; left:0; right:0; z-index:100; background:#fff; padding:14px 20px; align-items:center; justify-content:space-between; border-bottom:1px solid #f1f5f9; box-shadow:0 1px 3px rgba(0,0,0,0.04); }
-        .mobile-logo { font-size:1.05rem; font-weight:800; color:#1a1535; }
-        .mobile-logo span { color:#7F77DD; }
-        .main { margin-left:240px; flex:1; padding:36px 32px; min-height:100vh; }
+        .main { margin-left:252px; flex:1; padding:36px 40px; min-height:100vh; }
         .topbar { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:28px; gap:12px; }
-        .page-title { font-size:1.6rem; font-weight:800; color:#0f172a; letter-spacing:-0.6px; }
-        .page-sub { font-size:0.82rem; color:#94a3b8; margin-top:3px; }
-        .tabs { display:flex; gap:4px; background:#fff; border-radius:12px; padding:6px; border:1px solid #f1f5f9; box-shadow:0 1px 3px rgba(0,0,0,0.04); margin-bottom:24px; width:fit-content; }
-        .tab { padding:8px 18px; border-radius:8px; font-size:0.83rem; font-weight:600; cursor:pointer; color:#64748b; transition:all 0.15s; white-space:nowrap; }
-        .tab.active { background:linear-gradient(135deg,#534AB7,#7F77DD); color:#fff; box-shadow:0 2px 8px rgba(83,74,183,0.3); }
-        .tab:hover:not(.active) { background:#f8f9fb; color:#0f172a; }
-        .card { background:#fff; border-radius:14px; border:1px solid #f1f5f9; box-shadow:0 1px 3px rgba(0,0,0,0.04); padding:28px; margin-bottom:20px; }
-        .card-title { font-size:1rem; font-weight:700; color:#0f172a; margin-bottom:6px; }
-        .card-sub { font-size:0.82rem; color:#94a3b8; margin-bottom:24px; }
+        .page-title { font-size:1.6rem; font-weight:800; color:#151129; letter-spacing:-0.6px; }
+        .page-sub { font-size:0.82rem; color:#9691b3; margin-top:3px; }
+        .tabs { display:flex; gap:4px; background:#fff; border-radius:12px; padding:6px; border:1px solid #ece9f6; box-shadow:0 1px 3px rgba(21,17,41,0.04); margin-bottom:24px; width:fit-content; }
+        .tab { padding:8px 18px; border-radius:8px; font-size:0.83rem; font-weight:600; cursor:pointer; color:#64748b; white-space:nowrap; }
+        .tab.active { background:linear-gradient(135deg,#6f5fd6,#8f86e8); color:#fff; box-shadow:0 2px 8px rgba(111,95,214,0.3); }
+        .tab:hover:not(.active) { background:#f6f5fa; color:#151129; }
+        .card { background:#fff; border-radius:14px; border:1px solid #ece9f6; box-shadow:0 1px 3px rgba(21,17,41,0.04); padding:28px; margin-bottom:20px; }
+        .card-title { font-size:1rem; font-weight:700; color:#151129; margin-bottom:6px; }
+        .card-sub { font-size:0.82rem; color:#9691b3; margin-bottom:24px; }
         .field-label { font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#64748b; margin-bottom:6px; display:block; }
-        .field { width:100%; padding:11px 14px; border-radius:8px; border:1.5px solid #f1f5f9; font-size:0.875rem; font-family:'Plus Jakarta Sans',sans-serif; color:#0f172a; outline:none; margin-bottom:16px; transition:border-color 0.2s; background:#fff; }
-        .field:focus { border-color:#534AB7; }
-        .field:disabled { background:#f8f9fb; color:#94a3b8; }
-        .btn-primary { padding:11px 24px; background:linear-gradient(135deg,#534AB7,#7F77DD); color:#fff; font-size:0.875rem; font-weight:700; border:none; border-radius:8px; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; box-shadow:0 2px 8px rgba(83,74,183,0.25); transition:opacity 0.2s; }
-        .btn-primary:hover { opacity:0.9; }
-        .btn-danger { padding:11px 24px; background:#ef4444; color:#fff; font-size:0.875rem; font-weight:700; border:none; border-radius:8px; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; transition:opacity 0.2s; }
-        .btn-danger:hover { opacity:0.9; }
-        .btn-secondary { padding:11px 24px; background:#f8f9fb; color:#64748b; font-size:0.875rem; font-weight:600; border:1.5px solid #f1f5f9; border-radius:8px; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; transition:all 0.2s; }
-        .btn-secondary:hover { border-color:#534AB7; color:#534AB7; }
+        .field { width:100%; padding:11px 14px; border-radius:8px; border:1.5px solid #ece9f6; font-size:0.875rem; font-family:'Plus Jakarta Sans',sans-serif; color:#151129; outline:none; margin-bottom:16px; background:#fff; }
+        .field:focus { border-color:#6f5fd6; }
+        .field:disabled { background:#f9f8fc; color:#9691b3; }
+        .btn-primary { padding:11px 24px; background:linear-gradient(135deg,#6f5fd6,#8f86e8); color:#fff; font-size:0.875rem; font-weight:700; border:none; border-radius:8px; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; box-shadow:0 2px 8px rgba(111,95,214,0.25); }
+        .btn-danger { padding:11px 24px; background:#d6362f; color:#fff; font-size:0.875rem; font-weight:700; border:none; border-radius:8px; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; }
+        .btn-secondary { padding:11px 24px; background:#f8f9fb; color:#64748b; font-size:0.875rem; font-weight:600; border:1.5px solid #ece9f6; border-radius:8px; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; }
+        .btn-secondary:hover { border-color:#6f5fd6; color:#6f5fd6; }
         .msg { font-size:0.82rem; font-weight:600; margin-top:10px; }
         .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
-        .client-row { display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid #f8f9fb; font-size:0.875rem; }
+        .client-row { display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid #f8f7fc; font-size:0.875rem; }
         .client-row:last-child { border-bottom:none; }
-        .toggle { width:52px; height:28px; border-radius:14px; cursor:pointer; position:relative; transition:background 0.3s; flex-shrink:0; border:none; padding:0; }
-        .toggle-knob { position:absolute; top:3px; width:22px; height:22px; border-radius:50%; background:#fff; transition:left 0.3s; box-shadow:0 1px 4px rgba(0,0,0,0.15); }
+        .toggle { width:52px; height:28px; border-radius:14px; cursor:pointer; position:relative; border:none; padding:0; flex-shrink:0; }
+        .toggle-knob { position:absolute; top:3px; width:22px; height:22px; border-radius:50%; background:#fff; box-shadow:0 1px 4px rgba(0,0,0,0.15); }
         .mobile-only-logout { display:none; }
         @media (max-width:900px) {
-          .mobile-topbar { display:flex; }
-          .main { margin-left:0; padding:80px 16px 100px; }
+          .main { margin-left:0; padding:76px 16px 100px; }
           .topbar { flex-direction:column; gap:10px; }
           .page-title { font-size:1.3rem; }
           .tabs { flex-wrap:wrap; width:100%; }
@@ -259,15 +212,8 @@ export default function Settings() {
           .mobile-only-logout { display:block; }
         }
       `}</style>
-
-      <div className="mobile-topbar">
-        <div className="mobile-logo">M<span>ash</span></div>
-        <div style={{width:'32px'}} />
-      </div>
-
       <div className="layout">
         <Sidebar isAdmin={isAdmin} activePage="settings" mobileOpen={mobileNav} onClose={() => setMobileNav(false)} />
-
         <main className="main">
           <div className="topbar">
             <div>
@@ -275,15 +221,11 @@ export default function Settings() {
               <div className="page-sub">{isAdmin ? 'Enterprise Admin Settings' : 'Account Settings'}</div>
             </div>
           </div>
-
           <div className="tabs">
             {tabs.map(t => (
-              <div key={t.id} className={`tab ${activeTab === t.id ? 'active' : ''}`} onClick={() => setActiveTab(t.id)}>
-                {t.label}
-              </div>
+              <div key={t.id} className={`tab ${activeTab === t.id ? 'active' : ''}`} onClick={() => setActiveTab(t.id)}>{t.label}</div>
             ))}
           </div>
-
           {activeTab === 'account' && (
             <div className="card">
               <div className="card-title">Contact Details</div>
@@ -294,15 +236,9 @@ export default function Settings() {
               <input className="field" value={isAdmin ? user?.email : contactEmail} onChange={e => setContactEmail(e.target.value)} placeholder="Email address" disabled={isAdmin} />
               <label className="field-label">Phone Number</label>
               <input className="field" value={contactPhone} onChange={e => setContactPhone(e.target.value)} placeholder="Phone number" disabled={isAdmin} />
-              {!isAdmin && (
-                <>
-                  <button className="btn-primary" onClick={handleSaveAccount}>Save Changes</button>
-                  {saveMsg && <div className="msg">{saveMsg}</div>}
-                </>
-              )}
+              {!isAdmin && (<><button className="btn-primary" onClick={handleSaveAccount}>Save Changes</button>{saveMsg && <div className="msg">{saveMsg}</div>}</>)}
             </div>
           )}
-
           {activeTab === 'password' && (
             <div className="card">
               <div className="card-title">Change Password</div>
@@ -315,15 +251,13 @@ export default function Settings() {
               {passwordMsg && <div className="msg">{passwordMsg}</div>}
             </div>
           )}
-
           {activeTab === 'export' && !isAdmin && (
             <div className="card">
               <div className="card-title">Export Call Data</div>
               <div className="card-sub">Download all your call records as a CSV file</div>
-              <button className="btn-secondary" onClick={handleExportData}>📥 Download CSV Export</button>
+              <button className="btn-secondary" onClick={handleExportData}>Download CSV Export</button>
             </div>
           )}
-
           {activeTab === 'clients' && isAdmin && (
             <>
               <div className="card">
@@ -348,97 +282,75 @@ export default function Settings() {
                 <button className="btn-primary" onClick={handleChangePlan}>Update Plan</button>
                 {planMsg && <div className="msg">{planMsg}</div>}
               </div>
-
               <div className="card">
                 <div className="card-title">Reset Monthly Minutes</div>
                 <div className="card-sub">Reset a client's monthly usage counter</div>
                 <label className="field-label">Select Client</label>
-                <select className="field" style={{maxWidth:'360px'}} value={selectedClientId} onChange={e => setSelectedClientId(e.target.value)}>
+                <select className="field" style={{ maxWidth: '360px' }} value={selectedClientId} onChange={e => setSelectedClientId(e.target.value)}>
                   <option value="">— Select client —</option>
                   {clients.map(c => <option key={c.id} value={c.id}>{c.business_name} — {Math.round(c.monthly_minutes_used || 0)} min used</option>)}
                 </select>
                 <button className="btn-danger" onClick={handleResetMinutes}>Reset Minutes to Zero</button>
                 {resetMsg && <div className="msg">{resetMsg}</div>}
               </div>
-
               <div className="card">
                 <div className="card-title">All Clients Overview</div>
                 <div className="card-sub">Quick view of all active clients and their current plan</div>
                 {clients.map(c => (
                   <div key={c.id} className="client-row">
                     <div>
-                      <div style={{fontWeight:'700', color:'#0f172a', fontSize:'0.875rem'}}>{c.business_name}</div>
-                      <div style={{fontSize:'0.75rem', color:'#94a3b8', marginTop:'2px'}}>{c.contact_email}</div>
+                      <div style={{ fontWeight: '700', color: '#151129', fontSize: '0.875rem' }}>{c.business_name}</div>
+                      <div style={{ fontSize: '0.75rem', color: '#9691b3', marginTop: '2px' }}>{c.contact_email}</div>
                     </div>
-                    <div style={{textAlign:'right'}}>
-                      <div style={{fontSize:'0.78rem', fontWeight:'700', color:'#534AB7'}}>{plans.find(p => p.id === c.plan_id)?.name || 'No plan'}</div>
-                      <div style={{fontSize:'0.72rem', color:'#94a3b8', marginTop:'2px'}}>{Math.round(c.monthly_minutes_used || 0)} min used</div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: '0.78rem', fontWeight: '700', color: '#6f5fd6' }}>{plans.find(p => p.id === c.plan_id)?.name || 'No plan'}</div>
+                      <div style={{ fontSize: '0.72rem', color: '#9691b3', marginTop: '2px' }}>{Math.round(c.monthly_minutes_used || 0)} min used</div>
                     </div>
                   </div>
                 ))}
               </div>
             </>
           )}
-
-          {/* NOTIFICATIONS */}
           <div className="card">
-            <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <div className="card-title" style={{marginBottom:'4px'}}>Push Notifications</div>
-                <div style={{fontSize:'0.82rem', color:'#94a3b8'}}>Get notified when Mash handles a call</div>
+                <div className="card-title" style={{ marginBottom: '4px' }}>Push Notifications</div>
+                <div style={{ fontSize: '0.82rem', color: '#9691b3' }}>Get notified when Mash handles a call</div>
               </div>
-              <button
-                className="toggle"
-                onClick={handleNotifToggle}
-                style={{background: notifEnabled ? 'linear-gradient(135deg,#534AB7,#7F77DD)' : '#e2e8f0'}}
-              >
-                <div className="toggle-knob" style={{left: notifEnabled ? '27px' : '3px'}} />
+              <button className="toggle" onClick={handleNotifToggle} style={{ background: notifEnabled ? 'linear-gradient(135deg,#6f5fd6,#8f86e8)' : '#ece9f6' }}>
+                <div className="toggle-knob" style={{ left: notifEnabled ? '27px' : '3px' }} />
               </button>
             </div>
           </div>
-
-          {/* EMAIL DIGEST */}
           {!isAdmin && (
             <div className="card">
-              <div className="card-title" style={{marginBottom:'4px'}}>Email Digest</div>
-              <div style={{fontSize:'0.82rem', color:'#94a3b8', marginBottom:'20px'}}>
-                Receive a summary of your call activity by email
-              </div>
-              <div style={{display:'flex', gap:'10px', flexWrap:'wrap'}}>
+              <div className="card-title" style={{ marginBottom: '4px' }}>Email Digest</div>
+              <div style={{ fontSize: '0.82rem', color: '#9691b3', marginBottom: '20px' }}>Receive a summary of your call activity by email</div>
+              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                 {[
-                  { id: null, label: '🔕 Off', sub: 'No digest emails' },
-                  { id: 'daily', label: '📅 Daily', sub: 'Every morning at 8am' },
-                  { id: 'weekly', label: '📊 Weekly', sub: 'Every Monday morning' }
+                  { id: null, label: 'Off', sub: 'No digest emails' },
+                  { id: 'daily', label: 'Daily', sub: 'Every morning at 8am' },
+                  { id: 'weekly', label: 'Weekly', sub: 'Every Monday morning' }
                 ].map(opt => (
-                  <div
-                    key={String(opt.id)}
-                    onClick={() => handleDigestChange(opt.id)}
-                    style={{
-                      flex:'1', minWidth:'120px', padding:'14px 16px', borderRadius:'10px', cursor:'pointer',
-                      border: digestFrequency === opt.id ? '2px solid #534AB7' : '1.5px solid #f1f5f9',
-                      background: digestFrequency === opt.id ? '#f5f3ff' : '#f8f9fb',
-                      transition:'all 0.15s'
-                    }}
-                  >
-                    <div style={{fontWeight:'700', fontSize:'0.875rem', color: digestFrequency === opt.id ? '#534AB7' : '#0f172a', marginBottom:'3px'}}>{opt.label}</div>
-                    <div style={{fontSize:'0.72rem', color:'#94a3b8'}}>{opt.sub}</div>
+                  <div key={String(opt.id)} onClick={() => handleDigestChange(opt.id)} style={{
+                    flex: '1', minWidth: '120px', padding: '14px 16px', borderRadius: '10px', cursor: 'pointer',
+                    border: digestFrequency === opt.id ? '2px solid #6f5fd6' : '1.5px solid #ece9f6',
+                    background: digestFrequency === opt.id ? '#f1eefb' : '#f8f9fb'
+                  }}>
+                    <div style={{ fontWeight: '700', fontSize: '0.875rem', color: digestFrequency === opt.id ? '#6f5fd6' : '#151129', marginBottom: '3px' }}>{opt.label}</div>
+                    <div style={{ fontSize: '0.72rem', color: '#9691b3' }}>{opt.sub}</div>
                   </div>
                 ))}
               </div>
-              {digestMsg && <div className="msg" style={{marginTop:'12px'}}>{digestMsg}</div>}
+              {digestMsg && <div className="msg" style={{ marginTop: '12px' }}>{digestMsg}</div>}
             </div>
           )}
-
-          {/* MOBILE ONLY LOGOUT */}
-          <div className="mobile-only-logout" style={{marginTop:'20px', paddingTop:'20px', borderTop:'1px solid #f1f5f9'}}>
-            <button
-              style={{padding:'12px 24px', background:'none', border:'1.5px solid #fecaca', borderRadius:'10px', color:'#ef4444', fontSize:'0.875rem', fontWeight:'700', cursor:'pointer', fontFamily:'Plus Jakarta Sans,sans-serif'}}
-              onClick={async () => { await supabase.auth.signOut(); window.location.href = '/login' }}
-            >
-              🚪 Sign Out
+          <div className="mobile-only-logout" style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid #ece9f6' }}>
+            <button style={{ padding: '12px 24px', background: 'none', border: '1.5px solid #f6cccb', borderRadius: '10px', color: '#d6362f', fontSize: '0.875rem', fontWeight: '700', cursor: 'pointer', fontFamily: 'Plus Jakarta Sans,sans-serif' }}
+              onClick={async () => { await supabase.auth.signOut(); window.location.href = '/login' }}>
+              Sign Out
             </button>
           </div>
-
         </main>
       </div>
     </>
