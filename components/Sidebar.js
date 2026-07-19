@@ -11,14 +11,13 @@ const PERTH = 'Australia/Perth'
 function MashLogo({ size = 32 }) {
   const s = size
   const bar = s * 0.16
-  const r = bar / 2
   return (
     <svg width={s} height={s} viewBox={`0 0 ${s} ${s}`}>
       <circle cx={s / 2} cy={s / 2} r={s / 2} fill="#251f47" />
-      <rect x={s * 0.25} y={s * 0.375} width={bar} height={s * 0.25} rx={r} fill="#8f86e8" />
-      <rect x={s * 0.39} y={s * 0.28} width={bar} height={s * 0.44} rx={r} fill="#8f86e8" />
-      <rect x={s * 0.53} y={s * 0.2} width={bar} height={s * 0.59} rx={r} fill="#b9b3f2" />
-      <rect x={s * 0.67} y={s * 0.28} width={bar} height={s * 0.44} rx={r} fill="#8f86e8" />
+      <rect x={s * 0.25} y={s * 0.375} width={bar} height={s * 0.25} rx={1.5} fill="#8f86e8" />
+      <rect x={s * 0.39} y={s * 0.28} width={bar} height={s * 0.44} rx={1.5} fill="#8f86e8" />
+      <rect x={s * 0.53} y={s * 0.2} width={bar} height={s * 0.59} rx={1.5} fill="#b9b3f2" />
+      <rect x={s * 0.67} y={s * 0.28} width={bar} height={s * 0.44} rx={1.5} fill="#8f86e8" />
     </svg>
   )
 }
