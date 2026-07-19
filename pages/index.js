@@ -504,9 +504,9 @@ export default function Dashboard() {
                                 )}
                               </td>
                               <td>
-                                {call.recording_url && (isAdmin || features.recordings) && <span className={`action-btn ${expanded[call.id] === 'recording' ? 'active' : ''}`} onClick={() => togglePanel(call.id, 'recording')} title="Recording">🎙</span>}
+                                {call.recording_url && ((isAdmin && !impersonating) || features.recordings) && <span className={`action-btn ${expanded[call.id] === 'recording' ? 'active' : ''}`} onClick={() => togglePanel(call.id, 'recording')} title="Recording">🎙</span>}
                                 {call.call_summary && <span className={`action-btn ${expanded[call.id] === 'summary' ? 'active' : ''}`} onClick={() => togglePanel(call.id, 'summary')} title="Summary">✨</span>}
-                                {call.full_transcript && (isAdmin || features.transcripts) && <span className={`action-btn ${expanded[call.id] === 'transcript' ? 'active' : ''}`} onClick={() => togglePanel(call.id, 'transcript')} title="Transcript">📋</span>}
+                                {call.full_transcript && ((isAdmin && !impersonating) || features.transcripts) && <span className={`action-btn ${expanded[call.id] === 'transcript' ? 'active' : ''}`} onClick={() => togglePanel(call.id, 'transcript')} title="Transcript">📋</span>}
                               </td>
                             </tr>
                             {expanded[call.id] && (
@@ -602,9 +602,9 @@ export default function Dashboard() {
                             )}
                           </div>
                           <div className="call-card-actions">
-                            {call.recording_url && (isAdmin || features.recordings) && <span className={`call-card-btn ${expanded[call.id] === 'recording' ? 'active' : ''}`} onClick={() => togglePanel(call.id, 'recording')}>🎙 Recording</span>}
+                            {call.recording_url && ((isAdmin && !impersonating) || features.recordings) && <span className={`call-card-btn ${expanded[call.id] === 'recording' ? 'active' : ''}`} onClick={() => togglePanel(call.id, 'recording')}>🎙 Recording</span>}
                             {call.call_summary && <span className={`call-card-btn ${expanded[call.id] === 'summary' ? 'active' : ''}`} onClick={() => togglePanel(call.id, 'summary')}>✨ Summary</span>}
-                            {call.full_transcript && (isAdmin || features.transcripts) && <span className={`call-card-btn ${expanded[call.id] === 'transcript' ? 'active' : ''}`} onClick={() => togglePanel(call.id, 'transcript')}>📋 Transcript</span>}
+                            {call.full_transcript && ((isAdmin && !impersonating) || features.transcripts) && <span className={`call-card-btn ${expanded[call.id] === 'transcript' ? 'active' : ''}`} onClick={() => togglePanel(call.id, 'transcript')}>📋 Transcript</span>}
                           </div>
                           {expanded[call.id] && (
                             <div className="call-card-expand">
