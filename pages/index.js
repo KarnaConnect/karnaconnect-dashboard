@@ -199,13 +199,24 @@ export default function Dashboard() {
   const getCallIntent = (summary) => {
     if (!summary) return null
     const s = summary.toLowerCase()
-    if (s.includes('urgent') || s.includes('emergency') || s.includes('asap')) return { label: 'Urgent', icon: '🔴', color: '#ef4444' }
-    if (s.includes('quote') || s.includes('price') || s.includes('cost') || s.includes('how much')) return { label: 'Quote', icon: '💰', color: '#10b981' }
-    if (s.includes('book') || s.includes('appointment') || s.includes('schedule')) return { label: 'Booking', icon: '📅', color: '#534AB7' }
-    if (s.includes('complaint') || s.includes('unhappy') || s.includes('problem') || s.includes('issue')) return { label: 'Complaint', icon: '⚠️', color: '#f59e0b' }
-    if (s.includes('order') || s.includes('purchase') || s.includes('buy')) return { label: 'Order', icon: '📦', color: '#8b5cf6' }
-    if (s.includes('follow') || s.includes('callback') || s.includes('call back')) return { label: 'Follow Up', icon: '🔄', color: '#06b6d4' }
-    return { label: 'Enquiry', icon: '❓', color: '#94a3b8' }
+    const m = (label, icon, color, bg, border) => ({ label, icon, color, bg, border })
+    if (s.includes('urgent') || s.includes('emergency') || s.includes('asap') || s.includes('breakdown'))
+      return m('Urgent',    '🚨', '#dc2626', '#fef2f2', '#fecaca')
+    if (s.includes('complaint') || s.includes('unhappy') || s.includes('dissatisfied') || s.includes('issue') || s.includes('wrong') || s.includes('problem'))
+      return m('Complaint',  '⚠️', '#d97706', '#fffbeb', '#fde68a')
+    if (s.includes('pick up') || s.includes('pickup') || s.includes('collect') || s.includes('ready') || s.includes('car ready'))
+      return m('Pickup',    '🚗', '#7c3aed', '#f5f3ff', '#ddd6fe')
+    if (s.includes('payment') || s.includes('invoice') || s.includes('pay') || s.includes('bill') || s.includes('owing'))
+      return m('Payment',   '💳', '#0891b2', '#ecfeff', '#a5f3fc')
+    if (s.includes('book') || s.includes('appointment') || s.includes('schedule') || s.includes('service') || s.includes('repair'))
+      return m('Booking',   '📅', '#2563eb', '#eff6ff', '#bfdbfe')
+    if (s.includes('quote') || s.includes('price') || s.includes('cost') || s.includes('how much') || s.includes('estimate'))
+      return m('Quote',     '💰', '#16a34a', '#f0fdf4', '#bbf7d0')
+    if (s.includes('follow') || s.includes('callback') || s.includes('call back') || s.includes('return'))
+      return m('Follow Up', '🔄', '#0891b2', '#ecfeff', '#a5f3fc')
+    if (s.includes('order') || s.includes('purchase') || s.includes('buy') || s.includes('part'))
+      return m('Order',     '📦', '#7c3aed', '#f5f3ff', '#ddd6fe')
+    return m('Enquiry', '💬', '#64748b', '#f8fafc', '#e2e8f0')
   }
 
   if (authLoading) return (
@@ -488,11 +499,7 @@ export default function Dashboard() {
                                   </span>
                                 )})()}
                                 {intent && (
-                                  <span className="intent-badge" style={{
-                                    background: intent.color + '12',
-                                    color: intent.color,
-                                    border: `1px solid ${intent.color}25`
-                                  }}>
+                                  <span className="intent-badge" style={{ background: intent.bg, color: intent.color, border: `1px solid ${intent.border}` }}>
                                     {intent.icon} {intent.label}
                                   </span>
                                 )}
@@ -584,9 +591,7 @@ export default function Dashboard() {
                                 display:'inline-flex', alignItems:'center', gap:'4px',
                                 padding:'3px 9px', borderRadius:'20px',
                                 fontSize:'0.68rem', fontWeight:'700',
-                                background: intent.color + '12',
-                                color: intent.color,
-                                border: `1px solid ${intent.color}25`
+                                background: intent.bg, color: intent.color, border: `1px solid ${intent.border}`
                               }}>
                                 {intent.icon} {intent.label}
                               </span>
@@ -661,10 +666,7 @@ export default function Dashboard() {
                       )})()}
                     </div>
                     {intent && (
-                      <span className="intent-badge" style={{
-                        background: intent.color + '12', color: intent.color,
-                        border: `1px solid ${intent.color}25`, marginBottom:'8px', display:'inline-flex'
-                      }}>
+                      <span className="intent-badge" style={{ background: intent.bg, color: intent.color, border: `1px solid ${intent.border}`, marginBottom:'8px', display:'inline-flex' }}>
                         {intent.icon} {intent.label}
                       </span>
                     )}
