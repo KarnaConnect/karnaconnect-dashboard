@@ -183,21 +183,18 @@ export default function Dashboard() {
   }
 
 
-  const outcomeColor = (o) => {
-    if (!o) return '#94a3b8'
-    if (o.includes('ended')) return '#10b981'
-    if (o.includes('voicemail')) return '#f59e0b'
-    if (o.includes('no-answer')) return '#ef4444'
-    return '#534AB7'
+  const getOutcome = (o) => {
+    if (!o)                          return { icon: '–',  label: 'Unknown',    color: '#94a3b8', bg: '#f8fafc', border: '#e2e8f0' }
+    if (o === 'customer-ended-call') return { icon: '✓',  label: 'Answered',   color: '#16a34a', bg: '#f0fdf4', border: '#bbf7d0' }
+    if (o === 'assistant-ended-call')return { icon: '✓',  label: 'Completed',  color: '#2563eb', bg: '#eff6ff', border: '#bfdbfe' }
+    if (o.includes('voicemail'))     return { icon: '📬', label: 'Voicemail',  color: '#d97706', bg: '#fffbeb', border: '#fde68a' }
+    if (o.includes('no-answer'))     return { icon: '📵', label: 'No Answer',  color: '#dc2626', bg: '#fef2f2', border: '#fecaca' }
+    if (o.includes('ended'))         return { icon: '✓',  label: 'Completed',  color: '#16a34a', bg: '#f0fdf4', border: '#bbf7d0' }
+    return { icon: '•', label: o, color: '#534AB7', bg: '#EEEDFE', border: '#CECBF6' }
   }
-
-  const outcomeLabel = (o) => {
-    if (!o) return 'Unknown'
-    if (o === 'customer-ended-call' || o === 'assistant-ended-call') return 'Completed'
-    if (o === 'voicemail') return 'Voicemail'
-    if (o === 'no-answer') return 'No Answer'
-    return o
-  }
+  // legacy helpers kept for any other references
+  const outcomeColor = (o) => getOutcome(o).color
+  const outcomeLabel = (o) => getOutcome(o).label
 
   const getCallIntent = (summary) => {
     if (!summary) return null
@@ -485,14 +482,11 @@ export default function Dashboard() {
                               </td>
                               {isAdmin && selectedClient === 'all' && <td style={{fontSize:'0.78rem', color:'#64748b'}}>{callClientName}</td>}
                               <td>
-                                <span className="outcome-badge" style={{
-                                  background: outcomeColor(call.call_outcome) + '12',
-                                  color: outcomeColor(call.call_outcome),
-                                  border: `1px solid ${outcomeColor(call.call_outcome)}25`
-                                }}>
-                                  <span style={{width:'5px', height:'5px', borderRadius:'50%', background: outcomeColor(call.call_outcome), display:'inline-block', flexShrink:0}} />
-                                  {outcomeLabel(call.call_outcome)}
-                                </span>
+                                {(() => { const oc = getOutcome(call.call_outcome); return (
+                                  <span className="outcome-badge" style={{ background: oc.bg, color: oc.color, border: `1px solid ${oc.border}` }}>
+                                    {oc.icon} {oc.label}
+                                  </span>
+                                )})()}
                                 {intent && (
                                   <span className="intent-badge" style={{
                                     background: intent.color + '12',
@@ -578,14 +572,11 @@ export default function Dashboard() {
                               <div style={{fontSize:'0.72rem', color:'#94a3b8', marginTop:'2px'}}>{perthDate(callTs(call))}</div>
                               {callClientName && <div style={{fontSize:'0.7rem', color:'#7F77DD', fontWeight:'600', marginTop:'2px'}}>{callClientName}</div>}
                             </div>
-                            <span className="outcome-badge" style={{
-                              background: outcomeColor(call.call_outcome) + '12',
-                              color: outcomeColor(call.call_outcome),
-                              border: `1px solid ${outcomeColor(call.call_outcome)}25`
-                            }}>
-                              <span style={{width:'5px', height:'5px', borderRadius:'50%', background: outcomeColor(call.call_outcome), display:'inline-block'}} />
-                              {outcomeLabel(call.call_outcome)}
-                            </span>
+                            {(() => { const oc = getOutcome(call.call_outcome); return (
+                              <span className="outcome-badge" style={{ background: oc.bg, color: oc.color, border: `1px solid ${oc.border}` }}>
+                                {oc.icon} {oc.label}
+                              </span>
+                            )})()}
                           </div>
                           <div className="call-card-badges">
                             {intent && (
@@ -663,15 +654,11 @@ export default function Dashboard() {
                   <div key={c.id} className="history-item">
                     <div className="history-item-top">
                       <span style={{fontSize:'0.78rem', color:'#64748b'}}>{perthDate(callTs(c))}</span>
-                      <span className="outcome-badge" style={{
-                        background: outcomeColor(c.call_outcome) + '12',
-                        color: outcomeColor(c.call_outcome),
-                        border: `1px solid ${outcomeColor(c.call_outcome)}25`,
-                        fontSize:'0.68rem', padding:'3px 8px'
-                      }}>
-                        <span style={{width:'4px', height:'4px', borderRadius:'50%', background: outcomeColor(c.call_outcome), display:'inline-block', marginRight:'4px'}} />
-                        {outcomeLabel(c.call_outcome)}
-                      </span>
+                      {(() => { const oc = getOutcome(c.call_outcome); return (
+                        <span className="outcome-badge" style={{ background: oc.bg, color: oc.color, border: `1px solid ${oc.border}`, fontSize:'0.68rem', padding:'3px 8px' }}>
+                          {oc.icon} {oc.label}
+                        </span>
+                      )})()}
                     </div>
                     {intent && (
                       <span className="intent-badge" style={{
