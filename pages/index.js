@@ -181,11 +181,12 @@ export default function Dashboard() {
 
   const getOutcome = (o) => {
     if (!o)                          return { label: 'Unknown',   color: '#9691b3', bg: '#f6f5fa', border: '#ece9f6' }
-    if (o === 'customer-ended-call') return { label: 'Answered',  color: '#10a15c', bg: '#eafbf1', border: '#bcedd4' }
-    if (o === 'assistant-ended-call')return { label: 'Completed', color: '#2f6fe0', bg: '#eef4ff', border: '#cfe0fb' }
-    if (o.includes('voicemail'))     return { label: 'Voicemail', color: '#c68a1d', bg: '#fff7e8', border: '#f5deab' }
-    if (o.includes('no-answer'))     return { label: 'No Answer', color: '#d6362f', bg: '#fef1f1', border: '#f6cccb' }
-    if (o.includes('ended'))         return { label: 'Completed', color: '#10a15c', bg: '#eafbf1', border: '#bcedd4' }
+    if (o === 'customer-ended-call')           return { label: 'Answered',  color: '#10a15c', bg: '#eafbf1', border: '#bcedd4' }
+    if (o === 'assistant-ended-call')          return { label: 'Completed', color: '#2f6fe0', bg: '#eef4ff', border: '#cfe0fb' }
+    if (o === 'assistant-said-end-call-phrase')return { label: 'Completed', color: '#2f6fe0', bg: '#eef4ff', border: '#cfe0fb' }
+    if (o.includes('voicemail'))               return { label: 'Voicemail', color: '#c68a1d', bg: '#fff7e8', border: '#f5deab' }
+    if (o.includes('no-answer'))               return { label: 'No Answer', color: '#d6362f', bg: '#fef1f1', border: '#f6cccb' }
+    if (o.includes('ended'))                   return { label: 'Completed', color: '#10a15c', bg: '#eafbf1', border: '#bcedd4' }
     return { label: o, color: '#6f5fd6', bg: '#f1eefb', border: '#d6d0f5' }
   }
 
