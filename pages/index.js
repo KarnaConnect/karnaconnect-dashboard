@@ -492,19 +492,21 @@ export default function Dashboard() {
                                 </span>
                               </td>
                               {isAdmin && selectedClient === 'all' && <td style={{fontSize:'0.78rem', color:'#64748b'}}>{callClientName}</td>}
-                              <td>
-                                {(() => { const oc = getOutcome(call.call_outcome); return (
-                                  <span className="outcome-badge" style={{ background: oc.bg, color: oc.color, border: `1px solid ${oc.border}` }}>
-                                    {oc.icon} {oc.label}
-                                  </span>
-                                )})()}
-                                {intent && (
-                                  <span className="intent-badge" style={{ background: intent.bg, color: intent.color, border: `1px solid ${intent.border}` }}>
-                                    {intent.icon} {intent.label}
-                                  </span>
-                                )}
+                              <td style={{whiteSpace:'nowrap', width:'1%'}}>
+                                <div style={{display:'flex', gap:'5px', alignItems:'center', flexWrap:'wrap'}}>
+                                  {(() => { const oc = getOutcome(call.call_outcome); return (
+                                    <span className="outcome-badge" style={{ background: oc.bg, color: oc.color, border: `1px solid ${oc.border}` }}>
+                                      {oc.icon} {oc.label}
+                                    </span>
+                                  )})()}
+                                  {intent && (
+                                    <span className="intent-badge" style={{ background: intent.bg, color: intent.color, border: `1px solid ${intent.border}` }}>
+                                      {intent.icon} {intent.label}
+                                    </span>
+                                  )}
+                                </div>
                               </td>
-                              <td>
+                              <td style={{whiteSpace:'nowrap', width:'1%'}}>
                                 {call.recording_url && ((isAdmin && !impersonating) || features.recordings) && <span className={`action-btn ${expanded[call.id] === 'recording' ? 'active' : ''}`} onClick={() => togglePanel(call.id, 'recording')} title="Recording">🎙</span>}
                                 {call.call_summary && <span className={`action-btn ${expanded[call.id] === 'summary' ? 'active' : ''}`} onClick={() => togglePanel(call.id, 'summary')} title="Summary">✨</span>}
                                 {call.full_transcript && ((isAdmin && !impersonating) || features.transcripts) && <span className={`action-btn ${expanded[call.id] === 'transcript' ? 'active' : ''}`} onClick={() => togglePanel(call.id, 'transcript')} title="Transcript">📋</span>}
