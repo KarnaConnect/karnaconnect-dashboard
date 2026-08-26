@@ -11,7 +11,7 @@ export default function Onboarding() {
     business_description: '', services: '', service_area: '',
     business_hours: '', after_hours: '', agent_goal: '',
     tone: 'Friendly and professional', always_say: '', never_say: '',
-    faqs: '', plan_name: 'Basic'
+    faqs: '', plan_name: 'Standard'
   })
 
   useEffect(() => {
@@ -241,7 +241,7 @@ export default function Onboarding() {
                   <input className="field" value={form.agent_name} onChange={e => update('agent_name', e.target.value)} placeholder="e.g. Alex, Sam, Aria" />
                   <label className="field-label">Business Description <span className="required">*</span></label>
                   <textarea className="field" value={form.business_description} onChange={e => update('business_description', e.target.value)} placeholder="Briefly describe what your business does and who your customers are..." />
-                  <label className="field-label">Services Offered</label>
+                  <label className="field-label">Services Offered <span style={{fontWeight:400,textTransform:'none',letterSpacing:0,color:'#94a3b8',fontSize:'0.72rem'}}> — the more detail, the better your agent will be</span></label>
                   <textarea className="field" value={form.services} onChange={e => update('services', e.target.value)} placeholder="List your main services, one per line" />
                   <label className="field-label">Service Area</label>
                   <input className="field" value={form.service_area} onChange={e => update('service_area', e.target.value)} placeholder="e.g. All Perth metro suburbs including Mandurah and Yanchep" />
@@ -290,11 +290,11 @@ export default function Onboarding() {
                     <option>Casual and relaxed</option>
                     <option>Empathetic and reassuring</option>
                   </select>
-                  <label className="field-label">Always Say or Mention</label>
+                  <label className="field-label">Always Say or Mention <span style={{fontWeight:400,textTransform:'none',letterSpacing:0,color:'#94a3b8',fontSize:'0.72rem'}}> — optional, helps train your agent faster</span></label>
                   <textarea className="field" value={form.always_say} onChange={e => update('always_say', e.target.value)} placeholder="Anything the agent should always mention" />
-                  <label className="field-label">Never Say or Do</label>
+                  <label className="field-label">Never Say or Do <span style={{fontWeight:400,textTransform:'none',letterSpacing:0,color:'#94a3b8',fontSize:'0.72rem'}}> — optional</span></label>
                   <textarea className="field" value={form.never_say} onChange={e => update('never_say', e.target.value)} placeholder="Anything the agent should avoid" />
-                  <label className="field-label">Common FAQs</label>
+                  <label className="field-label">Common FAQs <span style={{fontWeight:400,textTransform:'none',letterSpacing:0,color:'#94a3b8',fontSize:'0.72rem'}}> — optional, helps your agent answer caller questions accurately</span></label>
                   <textarea className="field" style={{minHeight:'120px'}} value={form.faqs} onChange={e => update('faqs', e.target.value)} placeholder="Q: How long does an inspection take?&#10;A: Usually 2-3 hours" />
                   <div className="btn-row">
                     <button className="btn-back" onClick={() => setStep(3)}>← Back</button>
@@ -322,12 +322,21 @@ export default function Onboarding() {
                       </div>
                     ))}
                   </div>
-                  <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '16px', marginBottom: '20px', fontSize: '0.82rem', color: '#475569', lineHeight: '1.7' }}>
-                    ✓ Australian AI voice agent<br/>
-                    ✓ Live dashboard with call recordings and transcripts<br/>
-                    ✓ AI call summaries after every call<br/>
-                    ✓ Email notifications for every call<br/>
-                    ✓ No setup fees · No lock-in contracts
+                  <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '16px', marginBottom: '20px', fontSize: '0.82rem', color: '#475569', lineHeight: '1.9' }}>
+                    {[
+                      'Australian AI voice agent',
+                      'Live dashboard with call recordings and transcripts',
+                      'AI call summaries after every call',
+                      'Email notifications for every call',
+                      'No setup fees · No lock-in contracts',
+                    ].map((item, i) => (
+                      <div key={i} style={{display:'flex',alignItems:'center',gap:'8px'}}>
+                        <svg width="15" height="15" fill="none" stroke="#534AB7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{flexShrink:0}}>
+                          <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                        {item}
+                      </div>
+                    ))}
                   </div>
                   {isTrial && (
                     <div className="trial-banner">
