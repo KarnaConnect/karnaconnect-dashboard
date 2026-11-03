@@ -19,22 +19,58 @@ function statusBadge(status) {
     pending: { bg: '#f6f5fa', color: '#64748b', label: 'Pending' },
     calling: { bg: '#fff7e8', color: '#c68a1d', label: 'Calling' },
     called: { bg: '#eafbf1', color: '#10a15c', label: 'Called' },
+    waiting: { bg: '#eef4ff', color: '#2f6fe0', label: 'Waiting for calling hours' },
+    skipped: { bg: '#f6f5fa', color: '#64748b', label: 'Skipped' },
   }
   const s = map[status] || { bg: '#f6f5fa', color: '#64748b', label: status }
   return <span style={{ background: s.bg, color: s.color, padding: '2px 10px', borderRadius: '20px', fontSize: '0.72rem', fontWeight: 700 }}>{s.label}</span>
 }
 
+// Split one CSV line, respecting quoted values that contain commas
+function splitCSVLine(line) {
+  const out = []; let cur = '', quoted = false
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i]
+    if (ch === '"') { if (quoted && line[i + 1] === '"') { cur += '"'; i++ } else quoted = !quoted }
+    else if (ch === ',' && !quoted) { out.push(cur.trim()); cur = '' }
+    else cur += ch
+  }
+  out.push(cur.trim())
+  return out
+}
+
 function parseCSV(text) {
-  const lines = text.trim().split('\n').filter(Boolean)
+  const lines = text.replace(/\r/g, '').trim().split('\n').filter(Boolean)
   if (!lines.length) return []
-  const header = lines[0].toLowerCase().split(',').map(h => h.trim())
-  const nameIdx = header.findIndex(h => h.includes('name'))
-  const phoneIdx = header.findIndex(h => h.includes('phone') || h.includes('number') || h.includes('mobile'))
+  const header = splitCSVLine(lines[0].toLowerCase())
+  const find = (...keys) => header.findIndex(h => keys.some(k => h.includes(k)))
+  const businessIdx = find('business', 'company', 'organisation', 'organization')
+  const nameIdx = header.findIndex((h, i) => i !== businessIdx && (h.includes('contact') || h.includes('name')))
+  const phoneIdx = find('phone', 'number', 'mobile')
+  const industryIdx = find('industry', 'category', 'trade')
+  const suburbIdx = find('suburb', 'city', 'location', 'area')
   if (phoneIdx === -1) return null
+  const col = (cols, i) => (i !== -1 ? cols[i] || '' : '')
   return lines.slice(1).map(line => {
-    const cols = line.split(',').map(c => c.trim().replace(/^"|"$/g, ''))
-    return { name: nameIdx !== -1 ? cols[nameIdx] : '', phone_number: cols[phoneIdx] }
+    const cols = splitCSVLine(line)
+    return {
+      name: col(cols, nameIdx),
+      phone_number: col(cols, phoneIdx),
+      business_name: col(cols, businessIdx),
+      industry: col(cols, industryIdx),
+      suburb: col(cols, suburbIdx)
+    }
   }).filter(r => r.phone_number)
+}
+
+async function authHeaders() {
+  const { data: { session } } = await supabase.auth.getSession()
+  return { 'Content-Type': 'application/json', Authorization: `Bearer ${session?.access_token || ''}` }
+}
+
+const SALES_OUTCOME_COLORS = {
+  'Demo Booked': '#10a15c', 'Trial Link Sent': '#10a15c', 'Callback Requested': '#2f6fe0',
+  'Interested - Follow Up': '#2f6fe0', 'Opted Out': '#d6362f', 'Not Interested': '#64748b', 'Do Not Call': '#d6362f'
 }
 
 export default function Outreach() {
@@ -52,7 +88,14 @@ export default function Outreach() {
   const [expandedCampaign, setExpandedCampaign] = useState(null)
   const [campaignContacts, setCampaignContacts] = useState({})
   const [showModal, setShowModal] = useState(false)
-  const [newCampaign, setNewCampaign] = useState({ name: '', agentId: '', scheduledDate: '', scheduledTime: '', contacts: [] })
+  const emptyCampaign = { name: '', agentId: '', scheduledDate: '', scheduledTime: '', contacts: [], dncCheckedAt: '', windowStart: '09:30', windowEnd: '16:30', maxConcurrent: 1 }
+  const [newCampaign, setNewCampaign] = useState(emptyCampaign)
+  const [campaignNote, setCampaignNote] = useState('')
+  const [sales, setSales] = useState(null)
+  const [salesBusy, setSalesBusy] = useState(false)
+  const [salesMsg, setSalesMsg] = useState('')
+  const [showPrompt, setShowPrompt] = useState(false)
+  const [dncInput, setDncInput] = useState('')
   const [csvError, setCsvError] = useState('')
   const [creating, setCreating] = useState(false)
   const fileRef = useRef()
@@ -73,6 +116,7 @@ export default function Outreach() {
         setIsAdmin(true)
         const { data: cls } = await supabase.from('clients').select('id, business_name').eq('active', true).order('business_name')
         setClients(cls || [])
+        loadSales()
       } else if (uc?.client_id) {
         setSelectedClient(uc.client_id)
       }
@@ -95,6 +139,42 @@ export default function Outreach() {
     loadCampaigns()
   }, [selectedClient])
 
+  async function loadSales() {
+    try {
+      const res = await fetch(`${BACKEND}/outreach/sales-agent`, { headers: await authHeaders() })
+      if (res.ok) setSales(await res.json())
+    } catch {}
+  }
+
+  async function setupSalesAgent() {
+    setSalesBusy(true); setSalesMsg('')
+    try {
+      const res = await fetch(`${BACKEND}/outreach/sales-agent`, { method: 'POST', headers: await authHeaders(), body: '{}' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.vapi ? `${data.error}: ${JSON.stringify(data.vapi.message || data.vapi)}` : data.error)
+      setSalesMsg(data.created ? 'Sales agent created in VAPI and added to Outreach.' : 'Sales agent updated with the latest script.')
+      await loadSales()
+      if (selectedClient === sales?.client?.id) {
+        const r = await fetch(`${BACKEND}/outbound-agents/${selectedClient}`)
+        const list = await r.json()
+        setAgents(Array.isArray(list) ? list : [])
+      }
+    } catch (err) {
+      setSalesMsg('Error: ' + err.message)
+    }
+    setSalesBusy(false)
+  }
+
+  async function addDnc() {
+    const numbers = dncInput.split(/[\n,;]+/).map(n => n.trim()).filter(Boolean)
+    if (!numbers.length) return
+    const res = await fetch(`${BACKEND}/outreach/dnc`, { method: 'POST', headers: await authHeaders(), body: JSON.stringify({ numbers }) })
+    const data = await res.json()
+    setSalesMsg(res.ok ? `${data.added} number${data.added === 1 ? '' : 's'} added to the do-not-call list.` : 'Error: ' + data.error)
+    setDncInput('')
+    loadSales()
+  }
+
   async function loadCampaigns() {
     if (!selectedClient) return
     const res = await fetch(`${BACKEND}/campaigns/${selectedClient}`)
@@ -102,8 +182,8 @@ export default function Outreach() {
     setCampaigns(Array.isArray(data) ? data : [])
   }
 
-  async function loadContacts(campaignId) {
-    if (campaignContacts[campaignId]) return
+  async function loadContacts(campaignId, force) {
+    if (campaignContacts[campaignId] && !force) return
     const res = await fetch(`${BACKEND}/campaigns/${campaignId}/contacts`)
     const data = await res.json()
     setCampaignContacts(prev => ({ ...prev, [campaignId]: data }))
@@ -140,7 +220,9 @@ export default function Outreach() {
   }
 
   function downloadSampleCSV() {
-    const content = 'name,phone_number\nJohn Smith,+61400000001\nSarah Jones,+61400000002\nMichael Brown,+61400000003'
+    const content = isSalesCampaign
+      ? 'business_name,name,phone_number,industry,suburb\nSmith Plumbing,John Smith,0400000001,plumbing,Cockburn\nGlow Beauty Studio,Sarah Jones,0400000002,beauty salon,Fremantle'
+      : 'name,phone_number\nJohn Smith,+61400000001\nSarah Jones,+61400000002\nMichael Brown,+61400000003'
     const blob = new Blob([content], { type: 'text/csv' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
@@ -170,12 +252,21 @@ export default function Outreach() {
     try {
       const res = await fetch(`${BACKEND}/campaigns`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ clientId: selectedClient, outboundAgentId: agent?.id, name: newCampaign.name, scheduledAt, contacts: newCampaign.contacts })
+        body: JSON.stringify({
+          clientId: selectedClient, outboundAgentId: agent?.id, name: newCampaign.name, scheduledAt, contacts: newCampaign.contacts,
+          dncCheckedAt: newCampaign.dncCheckedAt || undefined,
+          settings: { windowStart: newCampaign.windowStart, windowEnd: newCampaign.windowEnd, maxConcurrent: newCampaign.maxConcurrent, weekdaysOnly: true }
+        })
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
       setShowModal(false)
-      setNewCampaign({ name: '', agentId: '', scheduledDate: '', scheduledTime: '', contacts: [] })
+      setNewCampaign(emptyCampaign)
+      const sk = data.skipped || {}
+      const removed = (sk.invalid || 0) + (sk.duplicate || 0) + (sk.doNotCall || 0)
+      setCampaignNote(removed
+        ? `Campaign created with ${data.contacts} contacts. Removed ${sk.doNotCall || 0} on the do-not-call list, ${sk.duplicate || 0} duplicates and ${sk.invalid || 0} invalid numbers.`
+        : `Campaign created with ${data.contacts} contacts.`)
       await loadCampaigns()
     } catch (err) {
       alert('Failed to create campaign: ' + err.message)
@@ -184,6 +275,10 @@ export default function Outreach() {
   }
 
   const selectedAgent = agents.find(a => a.vapi_agent_id === form.agentId)
+  const isSalesCampaign = agents.find(a => a.vapi_agent_id === newCampaign.agentId)?.purpose === 'sales'
+  const isMashClient = isAdmin && sales?.client?.id && selectedClient === sales.client.id
+  const dncAgeDays = newCampaign.dncCheckedAt ? Math.floor((Date.now() - new Date(newCampaign.dncCheckedAt).getTime()) / 86400000) : null
+  const dncValid = !isSalesCampaign || (dncAgeDays !== null && dncAgeDays >= 0 && dncAgeDays <= 30)
   if (authLoading) return null
 
   return (
@@ -268,6 +363,23 @@ export default function Outreach() {
         .contacts-preview-row { padding:3px 0; border-bottom:1px solid #ece9f6; display:flex; gap:12px; }
         .contacts-preview-row:last-child { border-bottom:none; }
         .csv-error { color:#d6362f; font-size:0.78rem; margin-bottom:10px; }
+        .sales-grid { display:grid; grid-template-columns:1.2fr 1fr; gap:20px; }
+        @media (max-width:900px) { .sales-grid { grid-template-columns:1fr; } }
+        .kv { display:flex; justify-content:space-between; gap:12px; padding:9px 0; border-bottom:1px solid #f4f2f9; font-size:0.84rem; }
+        .kv:last-child { border-bottom:none; }
+        .kv-k { color:#64748b; }
+        .kv-v { color:#151129; font-weight:600; text-align:right; }
+        .quote { background:#f5f3fe; border-left:3px solid #6f5fd6; border-radius:8px; padding:12px 14px; font-size:0.84rem; color:#2a2350; line-height:1.5; margin-bottom:14px; }
+        .prompt-box { white-space:pre-wrap; font-family:ui-monospace,Menlo,monospace; font-size:0.72rem; line-height:1.5; background:#fbfaff; border:1px solid #ece9f6; border-radius:8px; padding:12px; max-height:420px; overflow:auto; color:#334155; }
+        .check-list { list-style:none; display:flex; flex-direction:column; gap:10px; font-size:0.82rem; color:#334155; line-height:1.45; }
+        .check-list li { display:flex; gap:10px; }
+        .check-list li::before { content:'✓'; color:#10a15c; font-weight:800; }
+        .link-btn { background:none; border:none; color:#6f5fd6; font-weight:700; font-size:0.8rem; cursor:pointer; font-family:inherit; padding:0; }
+        .notice { padding:12px 14px; border-radius:10px; font-size:0.8rem; line-height:1.5; margin-bottom:14px; }
+        .notice.info { background:#eef4ff; color:#1e4fa8; border:1px solid #cfe0ff; }
+        .notice.ok { background:#eafbf1; color:#0b7a45; border:1px solid #bcedd4; }
+        .notice.warn { background:#fff7e8; color:#8a5a00; border:1px solid #f6dfb0; }
+        .outcome { font-weight:700; font-size:0.75rem; }
       `}</style>
       <div className="layout">
         <Sidebar isAdmin={isAdmin} activePage="outreach" />
@@ -276,6 +388,12 @@ export default function Outreach() {
             <div className="page-title">Outreach</div>
             <div className="page-sub">Single calls and campaign management</div>
           </div>
+          {isAdmin && sales?.client && !isMashClient && (
+            <div className="notice info" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+              <span><strong>Mash sales outreach:</strong> {sales.agent ? 'your cold-call agent Mia is ready.' : 'set up Mia, the agent that cold-calls businesses to sell Mash.'}</span>
+              <button className="new-btn" onClick={() => { setSelectedClient(sales.client.id); setTab('sales') }}>Open</button>
+            </div>
+          )}
           {isAdmin && (
             <div className="client-bar">
               <span className="client-label">Client</span>
@@ -292,7 +410,57 @@ export default function Outreach() {
               <div className="tabs">
                 <div className={`tab ${tab === 'single' ? 'active' : ''}`} onClick={() => setTab('single')}>Single Call</div>
                 <div className={`tab ${tab === 'campaigns' ? 'active' : ''}`} onClick={() => setTab('campaigns')}>Campaigns</div>
+                {isMashClient && <div className={`tab ${tab === 'sales' ? 'active' : ''}`} onClick={() => setTab('sales')}>Sales Agent</div>}
               </div>
+              {tab === 'sales' && isMashClient && (
+                <div className="sales-grid">
+                  <div className="card">
+                    <div className="card-hdr"><div className="card-title">Mia, Mash sales agent</div></div>
+                    <div className="card-body">
+                      {salesMsg && <div className={`notice ${salesMsg.startsWith('Error') ? 'warn' : 'ok'}`}>{salesMsg}</div>}
+                      <div className="kv"><span className="kv-k">Status</span><span className="kv-v">{sales.agent ? 'Ready' : 'Not set up yet'}</span></div>
+                      {sales.agent && <div className="kv"><span className="kv-k">VAPI assistant</span><span className="kv-v" style={{ fontFamily: 'monospace', fontSize: '0.75rem' }}>{sales.agent.vapi_agent_id}</span></div>}
+                      <div className="kv"><span className="kv-k">Caller ID (VAPI number)</span><span className="kv-v" style={{ fontFamily: 'monospace', fontSize: '0.75rem' }}>{sales.agent?.vapi_phone_number_id || sales.client.vapi_phone_number_id}</span></div>
+                      <div className="kv"><span className="kv-k">Goal</span><span className="kv-v">Book a demo, or send a trial link</span></div>
+                      <div className="kv"><span className="kv-k">Trial link by SMS</span><span className="kv-v">{sales.smsEnabled ? 'On' : 'Off (email only)'}</span></div>
+                      <div className="kv"><span className="kv-k">Default calling hours</span><span className="kv-v">Mon–Fri {sales.defaults.window_start}–{sales.defaults.window_end}, recipient's time</span></div>
+                      <div className="kv"><span className="kv-k">Do-not-call list</span><span className="kv-v">{sales.dncCount} number{sales.dncCount === 1 ? '' : 's'}</span></div>
+                      <button className="call-btn" style={{ marginTop: 16 }} onClick={setupSalesAgent} disabled={salesBusy}>
+                        {salesBusy ? 'Saving to VAPI...' : sales.agent ? 'Update agent with latest script' : 'Create sales agent in VAPI'}
+                      </button>
+                      <div style={{ marginTop: 22 }}>
+                        <label className="field-label">Opening line</label>
+                        <div className="quote">{sales.script.firstMessage.replace(/\{%.*?%\}/g, '').replace('{{businessName}}', '')}</div>
+                        <label className="field-label">Voicemail message</label>
+                        <div className="quote">{sales.script.voicemailMessage}</div>
+                        <button className="link-btn" onClick={() => setShowPrompt(v => !v)}>{showPrompt ? 'Hide full script' : 'Show full script'}</button>
+                        {showPrompt && <div className="prompt-box" style={{ marginTop: 10 }}>{sales.script.prompt}</div>}
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                    <div className="card">
+                      <div className="card-hdr"><div className="card-title">Built-in safeguards</div></div>
+                      <div className="card-body">
+                        <ul className="check-list">
+                          <li>Mia says she's an AI, who she's calling for and that the call is recorded, in her first line.</li>
+                          <li>Calls only go out on weekdays inside your calling window, in the recipient's local time. Never on weekends or national public holidays.</li>
+                          <li>Each sales campaign needs a Do Not Call Register wash date from the last 30 days.</li>
+                          <li>Anyone who says no, or asks not to be called, goes on the Mash do-not-call list straight away and is skipped in every future campaign.</li>
+                          <li>One call at a time by default, so you can listen and tune before scaling up.</li>
+                        </ul>
+                      </div>
+                    </div>
+                    <div className="card">
+                      <div className="card-hdr"><div className="card-title">Add to do-not-call list</div></div>
+                      <div className="card-body">
+                        <textarea className="field" rows={3} placeholder="One number per line, e.g. 0412 345 678" value={dncInput} onChange={e => setDncInput(e.target.value)} />
+                        <button className="btn-secondary" style={{ width: '100%' }} onClick={addDnc} disabled={!dncInput.trim()}>Add numbers</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
               {tab === 'single' && (
                 <div className="grid">
                   <div className="card">
@@ -343,6 +511,7 @@ export default function Outreach() {
                     <div style={{ fontSize: '0.85rem', color: '#64748b' }}>{campaigns.length} campaign{campaigns.length !== 1 ? 's' : ''}</div>
                     <button className="new-btn" onClick={() => setShowModal(true)}>+ New Campaign</button>
                   </div>
+                  {campaignNote && <div className="notice ok">{campaignNote}</div>}
                   {campaigns.length === 0
                     ? <div className="empty-campaigns">No campaigns yet.<br />Create one to start making bulk outbound calls.</div>
                     : <div className="campaign-list">
@@ -355,10 +524,11 @@ export default function Outreach() {
                                   {c.outbound_agents?.label} · {new Date(c.scheduled_at).toLocaleString('en-AU', { timeZone: 'Australia/Perth', day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                                 </div>
                               </div>
-                              <div className="campaign-progress">{c.called_count}/{c.total_contacts} called</div>
+                              <div className="campaign-progress">{c.status === 'completed' ? `${c.called_count}/${c.total_contacts} called` : `${c.total_contacts} contacts`}</div>
                               <div className="campaign-actions">
                                 {statusBadge(c.status)}
-                                {c.status === 'scheduled' && <button className="cancel-btn" onClick={e => { e.stopPropagation(); cancelCampaign(c.id) }}>Cancel</button>}
+                                {['scheduled', 'running', 'waiting'].includes(c.status) && <button className="cancel-btn" onClick={e => { e.stopPropagation(); cancelCampaign(c.id) }}>{c.status === 'scheduled' ? 'Cancel' : 'Stop'}</button>}
+                                {['running', 'waiting'].includes(c.status) && expandedCampaign === c.id && <button className="link-btn" onClick={e => { e.stopPropagation(); loadContacts(c.id, true); loadCampaigns() }}>Refresh</button>}
                                 <span style={{ color: '#9691b3', fontSize: '0.8rem' }}>{expandedCampaign === c.id ? '▲' : '▼'}</span>
                               </div>
                             </div>
@@ -367,13 +537,17 @@ export default function Outreach() {
                                 {!campaignContacts[c.id]
                                   ? <div style={{ padding: '16px 20px', color: '#9691b3', fontSize: '0.82rem' }}>Loading contacts...</div>
                                   : <table className="contact-table">
-                                      <thead><tr><th>Name</th><th>Phone</th><th>Status</th></tr></thead>
+                                      <thead><tr><th>Name</th><th>Phone</th><th>Status</th><th>Outcome</th></tr></thead>
                                       <tbody>
                                         {campaignContacts[c.id].map(ct => (
-                                          <tr key={ct.id}>
-                                            <td>{ct.name || '—'}</td>
+                                          <tr key={ct.id} title={ct.summary || ''}>
+                                            <td>{ct.business_name ? <><div style={{ fontWeight: 600 }}>{ct.business_name}</div><div style={{ color: '#9691b3', fontSize: '0.72rem' }}>{ct.name}</div></> : (ct.name || '—')}</td>
                                             <td style={{ fontFamily: 'monospace' }}>{ct.phone_number}</td>
                                             <td>{statusBadge(ct.status)}</td>
+                                            <td>
+                                              {ct.outcome ? <span className="outcome" style={{ color: SALES_OUTCOME_COLORS[ct.outcome] || '#334155' }}>{ct.outcome}</span> : '—'}
+                                              {ct.summary && <div style={{ color: '#64748b', fontSize: '0.72rem', marginTop: 2, maxWidth: 360 }}>{ct.summary}</div>}
+                                            </td>
                                           </tr>
                                         ))}
                                       </tbody>
@@ -407,7 +581,29 @@ export default function Outreach() {
                 <option value="">— Select agent —</option>
                 {agents.map(a => <option key={a.id} value={a.vapi_agent_id}>{a.label}</option>)}
               </select>
-              <label className="field-label">Schedule *</label>
+              {isSalesCampaign && (
+                <>
+                  <div className="notice info">
+                    Cold-call campaign. Before uploading, wash your list against the <a href="https://www.donotcall.gov.au/industry/" target="_blank" rel="noreferrer" style={{ color: '#1e4fa8', fontWeight: 700 }}>Do Not Call Register</a> and remove any registered numbers. Numbers on the Mash do-not-call list are removed automatically.
+                  </div>
+                  <label className="field-label">Date list was washed against the Do Not Call Register *</label>
+                  <input type="date" className="field" value={newCampaign.dncCheckedAt} max={new Date().toISOString().slice(0, 10)}
+                    onChange={e => setNewCampaign(c => ({ ...c, dncCheckedAt: e.target.value }))} />
+                  {newCampaign.dncCheckedAt && !dncValid && <div className="csv-error">Wash results are only valid for 30 days. Re-wash the list first.</div>}
+                  <label className="field-label">Calling hours (Mon–Fri, recipient's local time)</label>
+                  <div className="date-row">
+                    <input type="time" className="field" value={newCampaign.windowStart} min="09:00" max="20:00" onChange={e => setNewCampaign(c => ({ ...c, windowStart: e.target.value }))} />
+                    <input type="time" className="field" value={newCampaign.windowEnd} min="09:00" max="20:00" onChange={e => setNewCampaign(c => ({ ...c, windowEnd: e.target.value }))} />
+                  </div>
+                  <label className="field-label">Calls at the same time</label>
+                  <select className="field" value={newCampaign.maxConcurrent} onChange={e => setNewCampaign(c => ({ ...c, maxConcurrent: Number(e.target.value) }))}>
+                    <option value={1}>1 (recommended for the pilot)</option>
+                    <option value={2}>2</option>
+                    <option value={3}>3</option>
+                  </select>
+                </>
+              )}
+              <label className="field-label">{isSalesCampaign ? 'Start from *' : 'Schedule *'}</label>
               <div className="date-row">
                 <input type="date" className="field" value={newCampaign.scheduledDate}
                   onChange={e => setNewCampaign(c => ({ ...c, scheduledDate: e.target.value }))} />
@@ -417,7 +613,7 @@ export default function Outreach() {
               <label className="field-label">Contact List (CSV) *</label>
               <div className="csv-drop" onClick={() => fileRef.current?.click()}>
                 <div className="csv-drop-text">{newCampaign.contacts.length > 0 ? `${newCampaign.contacts.length} contacts loaded` : 'Click to upload CSV'}</div>
-                <div className="csv-drop-hint">Columns: name, phone_number · <span style={{ color: '#6f5fd6', cursor: 'pointer', textDecoration: 'underline' }} onClick={e => { e.stopPropagation(); downloadSampleCSV() }}>Download sample</span></div>
+                <div className="csv-drop-hint">Columns: {isSalesCampaign ? 'business_name, name, phone_number, industry, suburb' : 'name, phone_number'} · <span style={{ color: '#6f5fd6', cursor: 'pointer', textDecoration: 'underline' }} onClick={e => { e.stopPropagation(); downloadSampleCSV() }}>Download sample</span></div>
               </div>
               <input ref={fileRef} type="file" accept=".csv,.txt" style={{ display: 'none' }} onChange={handleCSV} />
               {csvError && <div className="csv-error">{csvError}</div>}
@@ -426,7 +622,7 @@ export default function Outreach() {
                   <div className="contacts-preview-hdr">Preview ({Math.min(3, newCampaign.contacts.length)} of {newCampaign.contacts.length})</div>
                   {newCampaign.contacts.slice(0, 3).map((c, i) => (
                     <div key={i} className="contacts-preview-row">
-                      <span style={{ color: '#64748b', minWidth: 80 }}>{c.name || '—'}</span>
+                      <span style={{ color: '#64748b', minWidth: 80 }}>{c.business_name || c.name || '—'}</span>
                       <span style={{ fontFamily: 'monospace' }}>{c.phone_number}</span>
                     </div>
                   ))}
@@ -435,7 +631,7 @@ export default function Outreach() {
             </div>
             <div className="modal-footer">
               <button className="btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
-              <button className="btn-primary" onClick={createCampaign} disabled={creating || !newCampaign.name || !newCampaign.agentId || !newCampaign.scheduledDate || !newCampaign.scheduledTime || !newCampaign.contacts.length}>
+              <button className="btn-primary" onClick={createCampaign} disabled={creating || !newCampaign.name || !newCampaign.agentId || !newCampaign.scheduledDate || !newCampaign.scheduledTime || !newCampaign.contacts.length || !dncValid}>
                 {creating ? 'Creating...' : 'Create Campaign →'}
               </button>
             </div>
