@@ -29,6 +29,7 @@ function MashLogo({ size = 32 }) {
 const NAV_DEFS = [
   { icon: 'calls',     label: 'Calls',     page: 'dashboard', href: '/',          show: true },
   { icon: 'outreach',  label: 'Outreach',  page: 'outreach',  href: '/outreach',  show: 'canOutreach' },
+  { icon: 'leads',     label: 'Leads',     page: 'leads',     href: '/leads',     show: 'isAdmin' },
   { icon: 'clients',   label: 'Clients',   page: 'clients',   href: '/clients',   show: 'isAdmin' },
   { icon: 'analytics', label: 'Analytics', page: 'analytics', href: '/analytics', show: 'canAnalytics' },
   { icon: 'billing',   label: 'Billing',   page: 'usage',     href: '/usage',     show: true },
@@ -40,6 +41,7 @@ const ICON_PATHS = {
   calls:    ['M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.68A2 2 0 012 .18h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92z'],
   outreach: ['M22 2L11 13', 'M22 2L15 22 11 13 2 9 22 2'],
   clients:  ['M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2', 'M23 21v-2a4 4 0 00-3-3.87', 'M16 3.13a4 4 0 010 7.75'],
+  leads:    ['M3 4h18l-7 8v6l-4 2v-8L3 4z'],
   analytics:['M18 20V10', 'M12 20V4', 'M6 20v-6'],
   billing:  ['M1 4h22v16H1z', 'M1 10h22'],
   crm:      ['M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71', 'M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71'],
