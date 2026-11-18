@@ -84,6 +84,18 @@ export default function Leads() {
     })
   }, [])
 
+  const [shown, setShown] = useState(200)
+  async function exportZip() {
+    try {
+      setNote({ type: 'info', text: 'Preparing the lead lists…' })
+      const res = await fetch(`${BACKEND}/leads/export.zip`, { headers: await authHeaders() })
+      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `Export failed (${res.status})`)
+      const a = document.createElement('a'); a.href = URL.createObjectURL(await res.blob())
+      a.download = (res.headers.get('Content-Disposition') || '').match(/filename="([^"]+)"/)?.[1] || 'Mash Leads.zip'; a.click()
+      setNote({ type: 'info', text: 'Downloaded. Unzip it into your Marketing folder: one folder per industry, each with leads.csv.' })
+    } catch (err) { setNote({ type: 'warn', text: err.message }) }
+  }
+
   async function load() {
     try { setData(await api('/leads')) } catch (err) { setNote({ type: 'warn', text: err.message }) }
   }
@@ -229,6 +241,7 @@ export default function Leads() {
             <input className="field" placeholder="Search business, suburb, phone" value={search} onChange={e => setSearch(e.target.value)} style={{ flex: 1, minWidth: 180 }} />
             <button className="btn" onClick={() => { setForm({ industry: industry || 'trades', area: 'Cockburn Central', radiusKm: 8 }); setModal('find') }}>Find leads</button>
             <button className="btn" onClick={() => { setForm({ rows: [] }); setModal('import') }}>Import CSV</button>
+            <button className="btn" onClick={exportZip}>Export lead lists</button>
           </div>
 
           {selected.size > 0 && (
@@ -255,7 +268,7 @@ export default function Leads() {
                   <th>Business</th><th>Contact</th><th>Status</th><th>Last call</th><th>Next step</th><th>DNCR wash</th>
                 </tr></thead>
                 <tbody>
-                  {rows.map(l => {
+                  {rows.slice(0, shown).map(l => {
                     const age = washAge(l.dncr_checked_at)
                     return (
                       <tr key={l.id}>
@@ -291,8 +304,14 @@ export default function Leads() {
                 </tbody>
               </table>
             )}
+            {rows.length > shown && (
+              <div style={{ padding: 12, textAlign: 'center' }}>
+                <span className="muted">Showing {shown} of {rows.length}. </span>
+                <button className="btn" onClick={() => setShown(n => n + 300)}>Show more</button>
+              </div>
+            )}
           </div>
-          <div className="muted" style={{ marginTop: 10 }}>Business listings from <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a> contributors.</div>
+          <div className="muted" style={{ marginTop: 10 }}>Business listings from Google and <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a> contributors.</div>
         </main>
       </div>
 
