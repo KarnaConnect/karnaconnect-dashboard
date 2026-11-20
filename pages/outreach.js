@@ -68,6 +68,20 @@ const SALES_OUTCOME_COLORS = {
   'Interested - Follow Up': '#2f6fe0', 'Opted Out': '#d6362f', 'Not Interested': '#64748b', 'Do Not Call': '#d6362f'
 }
 
+// Mash sales industries (keys match the backend's industries.js)
+const SALES_INDUSTRIES = [
+  ['trades', 'Trades (plumbers, electricians, builders)'],
+  ['hair_beauty', 'Hair, beauty and nail salons'],
+  ['health_clinics', 'Health clinics (physio, dental, chiro, GP)'],
+  ['automotive', 'Automotive'],
+  ['real_estate', 'Real estate and property management'],
+  ['hospitality', 'Cafes, restaurants and takeaway'],
+  ['home_services', 'Home services (cleaning, pest, landscaping)'],
+  ['professional_services', 'Professional services (accountants, lawyers)'],
+  ['fitness', 'Gyms, studios and personal trainers'],
+  ['pet_vet', 'Vets, groomers and pet services']
+]
+
 export default function Outreach() {
   const [user, setUser] = useState(null)
   const [authLoading, setAuthLoading] = useState(true)
@@ -76,7 +90,7 @@ export default function Outreach() {
   const [selectedClient, setSelectedClient] = useState('')
   const [agents, setAgents] = useState([])
   const [tab, setTab] = useState('single')
-  const [form, setForm] = useState({ agentId: '', phoneNumberId: '', customerNumber: '', customerName: '' })
+  const [form, setForm] = useState({ agentId: '', phoneNumberId: '', customerNumber: '', customerName: '', businessName: '', industry: '', suburb: '' })
   const [callStatus, setCallStatus] = useState(null)
   const [callError, setCallError] = useState('')
   const [campaigns, setCampaigns] = useState([])
@@ -160,7 +174,7 @@ export default function Outreach() {
     try {
       const res = await fetch(`${BACKEND}/call/outbound`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ agentId: form.agentId, phoneNumberId: form.phoneNumberId, customerNumber: form.customerNumber, customerName: form.customerName || undefined })
+        body: JSON.stringify({ agentId: form.agentId, phoneNumberId: form.phoneNumberId, customerNumber: form.customerNumber, customerName: form.customerName || undefined, businessName: form.businessName || undefined, industry: form.industry || undefined, suburb: form.suburb || undefined })
       })
       const data = await res.json()
       if (!res.ok) throw new Error(typeof data.error === 'string' ? data.error : JSON.stringify(data.error))
@@ -383,6 +397,21 @@ export default function Outreach() {
                         <label className="field-label">Customer Name (optional)</label>
                         <input className="field" placeholder="e.g. John Smith" value={form.customerName}
                           onChange={e => setForm(f => ({ ...f, customerName: e.target.value }))} disabled={callStatus === 'calling'} />
+                        {selectedAgent?.purpose === 'sales' && (<>
+                          <label className="field-label">Business Name (optional)</label>
+                          <input className="field" placeholder="e.g. Bibra Lake Physio" value={form.businessName}
+                            onChange={e => setForm(f => ({ ...f, businessName: e.target.value }))} disabled={callStatus === 'calling'} />
+                          <label className="field-label">Industry</label>
+                          <select className="field" value={form.industry}
+                            onChange={e => setForm(f => ({ ...f, industry: e.target.value }))} disabled={callStatus === 'calling'}>
+                            <option value="">From the lead list, or general if not a lead</option>
+                            {SALES_INDUSTRIES.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
+                          </select>
+                          <label className="field-label">Suburb (optional)</label>
+                          <input className="field" placeholder="e.g. Fremantle" value={form.suburb}
+                            onChange={e => setForm(f => ({ ...f, suburb: e.target.value }))} disabled={callStatus === 'calling'} />
+                          <div style={{ fontSize: '0.75rem', color: '#64748b', margin: '-4px 0 10px' }}>If the number is already a lead, Mash uses that lead's details. Anything you type here wins.</div>
+                        </>)}
                         <label className="field-label">Customer Phone Number *</label>
                         <input className="field" placeholder="+61 400 000 000" value={form.customerNumber}
                           onChange={e => setForm(f => ({ ...f, customerNumber: e.target.value }))} required disabled={callStatus === 'calling'} />
